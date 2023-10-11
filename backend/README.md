@@ -9,7 +9,7 @@ Follow these steps to get started with the Django backend:
 1. **Clone the Repository**: Use `git clone` to download the project files to your local machine:
 
    ```bash
-   git clone [repository URL]
+   git clone https://github.com/FazelHaghighi/ADSS-Project
    ```
 
 2. **Install Dependencies**: Navigate to the project directory and install the required Python dependencies:
