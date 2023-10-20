@@ -1,51 +1,38 @@
-# React Frontend for ADSS Project
+# create-svelte
 
-Welcome to the frontend repository for ADSS Project. This repository contains the React-based user interface components and code that make up the client side of our application. Below, you'll find essential information to help you understand, set up, and contribute to this part of the project.
+Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
 
-## Getting Started
+## Creating a project
 
-Follow these steps to get started with the React frontend:
+If you're seeing this, you've probably already done this step. Congrats!
 
-1. **Clone the Repository**: Use `git clone` to download the project files to your local machine:
+```bash
+# create a new project in the current directory
+npm create svelte@latest
 
-   ```bash
-   git clone https://github.com/FazelHaghighi/ADSS-Project
-   ```
+# create a new project in my-app
+npm create svelte@latest my-app
+```
 
-2. **Install Dependencies**: Navigate to the project directory and install the required Node.js dependencies:
+## Developing
 
-   ```bash
-   npm install
-   ```
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-3. **Configure Environment Variables**: Create a `.env` file and set your environment-specific variables, such as API endpoints and other settings.
+```bash
+npm run dev
 
-4. **Run the Development Server**: Start the development server for the React frontend:
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
 
-   ```bash
-   npm start
-   ```
+## Building
 
-5. **Build for Production**: When ready for deployment, build your project using:
+To create a production version of your app:
 
-   ```bash
-   npm run build
-   ```
+```bash
+npm run build
+```
 
-6. **Testing**: To run tests, use:
+You can preview the production build with `npm run preview`.
 
-   ```bash
-   npm test
-   ```
-
-7. **Deployment**: Deploy the built files to your web server or hosting service.
-
-## Contributing
-
-We welcome contributions to improve this React frontend. If you'd like to contribute, please follow these steps:
-
-1. Fork the repository on GitHub.
-2. Create a new branch for your feature or bug fix.
-3. Commit your changes with descriptive messages.
-4. Push your branch to your fork and open a pull request.
-5. Follow our code of conduct and contribute to our project.
+> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
