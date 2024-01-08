@@ -1,6 +1,15 @@
 __pycache__
+.dockerignore
+.DS_Store
+.idea
+.vscode
 *.pyc
 *.pyo
 *.pyd
 *.db
-*.sqlite3
+*.sqlite
+*.log
+*.env
+venv
+env
+env-bak
