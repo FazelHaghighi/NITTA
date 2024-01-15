@@ -26,6 +26,5 @@ def authenticate(username: str, password: str):
         encoded = jwt.encode(dictStudent, secret, algorithm="HS256")
         return encoded
     except:
-        print('safg')
         return [{"code": "0"}]
     
