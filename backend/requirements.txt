@@ -7,3 +7,4 @@ pydantic
 pydantic-settings
 pytest
 email_validator
+PyJWT
