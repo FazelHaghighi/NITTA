@@ -1,5 +1,6 @@
 from crud import (get_students)
 from sqlalchemy.orm import Session
+from argon2 import PasswordHasher
 import jwt
 
 def authenticate(db: Session, username: str, password: str):
