@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,14 +12,15 @@ import {
 } from '@/components/ui/form';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import axios, { AxiosError } from 'axios';
 import { useStudentStore } from '@/hooks/useStudentStore';
-import { Student } from '@/types/globalTypes';
+import { LoginErrorCode, Student, TokensType } from '@/types/globalTypes';
 import { useToast } from '@/components/ui/use-toast';
+import { setCookie } from 'cookies-next';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   username: z
@@ -36,8 +37,8 @@ const formSchema = z.object({
 const Login: React.FC = () => {
   const student = useStudentStore((state) => state.student);
   const updateStudent = useStudentStore((state) => state.updateStudent);
-  const { toast } = useToast();
   const router = useRouter();
+  const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,8 +49,8 @@ const Login: React.FC = () => {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     axios
-      .post<Student>(
-        'http://127.0.0.1:8000/auth',
+      .post<TokensType>(
+        'http://127.0.0.1:8000/login',
         {
           username: values.username,
           password: values.password,
@@ -60,16 +61,21 @@ const Login: React.FC = () => {
           },
         }
       )
-      .then(({ data }) => {
-        if (data instanceof Array) {
+      .then(({ data }: { data: TokensType | LoginErrorCode }) => {
+        console.log(data);
+        if ('code' in data) {
           toast({
             title: 'خطا!',
-            description: 'نام کاربری یا رمزعبور اشتباه است.',
+            description:
+              data.code === '-1'
+                ? 'کاربری با این نام وجود ندارد.'
+                : 'رمز عبور اشتباه است.',
             variant: 'destructive',
           });
           return;
         }
-        updateStudent(data);
+        setCookie('access_token', data.access_token);
+        setCookie('refresh_token', data.refresh_token);
 
         router.push('/dashboard');
       })

@@ -4,3 +4,12 @@ export type Student = {
   name: string;
   username: string;
 };
+
+export type LoginErrorCode = {
+  code: string;
+};
+
+export type TokensType = {
+  access_token: string;
+  refresh_token: string;
+};

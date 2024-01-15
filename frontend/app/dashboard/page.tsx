@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import axios, { AxiosError } from 'axios';
+import { TokensType } from '@/types/globalTypes';
+import { useRouter } from 'next/navigation';
 
 interface Student {
   id: number;
@@ -58,6 +61,8 @@ const Dashboard = ({
     setSelectedLessons([]);
   };
 
+  const router = useRouter();
+
   const handleLessonSelection = (lesson: Lesson) => {
     const lessonIndex = selectedLessons.findIndex((l) => l.id === lesson.id);
     if (lessonIndex === -1) {
@@ -66,6 +71,8 @@ const Dashboard = ({
       setSelectedLessons(selectedLessons.filter((l) => l.id !== lesson.id));
     }
   };
+
+  useEffect(() => {}, []);
 
   return (
     <div>
