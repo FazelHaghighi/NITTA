@@ -1,9 +1,9 @@
 'use client';
-
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { useStudentStore } from '@/hooks/useStudentStore';
 import axios, { AxiosError } from 'axios';
-import { TokensType } from '@/types/globalTypes';
+import { getCookie, setCookie, deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
 
 interface Student {
@@ -29,20 +29,17 @@ function StudentComponent({ student }: { student: Student | undefined }) {
       <p>شماره دانشجویی : {student?.id}</p>
       <p>نام : {student?.name}</p>
       <p>نام کاربری : {student?.username}</p>
-      <p>email : {student?.email}</p>
+      <p>ایمیل : {student?.email}</p>
     </>
   );
 }
 
-const Dashboard = ({
-  showStudent,
-  student,
-}: {
-  showStudent: boolean;
-  student: Student | undefined;
-}) => {
+const Dashboard = () => {
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [selectedLessons, setSelectedLessons] = useState<Lesson[]>([]);
+  const student = useStudentStore((state) => state.student);
+  const updateStudent = useStudentStore((state) => state.updateStudent);
+  const router = useRouter();
 
   const teachers: Teacher[] = [
     { id: 1, name: 'استاد ۱' },
@@ -61,8 +58,6 @@ const Dashboard = ({
     setSelectedLessons([]);
   };
 
-  const router = useRouter();
-
   const handleLessonSelection = (lesson: Lesson) => {
     const lessonIndex = selectedLessons.findIndex((l) => l.id === lesson.id);
     if (lessonIndex === -1) {
@@ -72,7 +67,42 @@ const Dashboard = ({
     }
   };
 
-  useEffect(() => {}, []);
+  function handleLogout() {
+    deleteCookie('access_token');
+    deleteCookie('refresh_token');
+
+    router.push('/');
+  }
+
+  useEffect(() => {
+    axios
+      .post(
+        'http://127.0.0.1:8000/getStudentById',
+        {
+          access_token: getCookie('access_token'),
+          refresh_token: getCookie('refresh_token'),
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+      .then(({ data }) => {
+        if (data.code === '1' || data.code === '2') {
+          console.log('some error occured');
+          return;
+        }
+        if (data.new_access_token) {
+          setCookie('access_token', data.new_access_token);
+        }
+
+        updateStudent(data.student);
+      })
+      .catch((error: AxiosError) => {
+        console.log(error);
+      });
+  }, []);
 
   return (
     <div>
@@ -102,6 +132,7 @@ const Dashboard = ({
                     لیست دستیاران آموزشی
                   </a>
                   <a
+                    onClick={handleLogout}
                     href="#"
                     className="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
                   >
@@ -126,7 +157,9 @@ const Dashboard = ({
                 height={64}
               />
             </div>
-            <div>{showStudent && <StudentComponent student={student} />}</div>
+            <div>
+              <StudentComponent student={student} />
+            </div>
           </div>
         </div>
         <div className="space-y-4 bg-[#b6b6b6fb] mix-blend-multiply rounded-md p-4">

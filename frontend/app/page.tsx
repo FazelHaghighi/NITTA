@@ -35,8 +35,6 @@ const formSchema = z.object({
 });
 
 const Login: React.FC = () => {
-  const student = useStudentStore((state) => state.student);
-  const updateStudent = useStudentStore((state) => state.updateStudent);
   const router = useRouter();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
