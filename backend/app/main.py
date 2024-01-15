@@ -51,8 +51,8 @@ def get_db():
         db.close()
 
 @app.post("/auth")
-async def authentication(user: User, db: Session = Depends(get_db)):
-    return authenticate(db, user.username, user.password)
+async def authentication(user: User):
+    return authenticate(user.username, user.password)
 
 @app.post("/tas/{ta_id}/ratings/", response_model=TARating)
 async def submit_ta_rating(ta_id: int, rating: TARatingCreate, db: Session = Depends(get_db)):
