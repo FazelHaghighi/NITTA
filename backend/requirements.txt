@@ -8,3 +8,4 @@ pydantic-settings
 pytest
 email_validator
 PyJWT
+argon2-cffi

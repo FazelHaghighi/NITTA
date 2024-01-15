@@ -1,5 +1,6 @@
 from crud import (get_students)
 from sqlalchemy.orm import Session
+import jwt
 
 def authenticate(db: Session, username: str, password: str):
     students = get_students(db, 0, 10)
