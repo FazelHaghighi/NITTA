@@ -17,8 +17,30 @@ from schemas import (
     Department, DepartmentCreate, TACreate, TA
 )
 from database import SessionLocal, engine
+from fastapi.middleware.cors import CORSMiddleware
+from api import authenticate
+from pydantic import BaseModel
+
+class User(BaseModel):
+    username: str
+    password: str
+
 
 app = FastAPI()
+
+origins = [
+
+    "http://localhost",
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Dependency to get the database session
 def get_db():
@@ -27,6 +49,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+@app.post("/auth")
+async def authentication(user: User, db: Session = Depends(get_db)):
+    return authenticate(db, user.username, user.password)
 
 @app.post("/tas/{ta_id}/ratings/", response_model=TARating)
 async def submit_ta_rating(ta_id: int, rating: TARatingCreate, db: Session = Depends(get_db)):
@@ -167,6 +193,7 @@ async def update_request_endpoint(request_id: int, request: RequestCreate, db: S
 @app.put("/teachers/{teacher_id}/", response_model=Teacher)
 async def update_teacher_endpoint(teacher_id: int, teacher: TeacherCreate, db: Session = Depends(get_db)):
     return update_teacher(db, teacher_id, teacher)
+
 
 
 # Run the application
