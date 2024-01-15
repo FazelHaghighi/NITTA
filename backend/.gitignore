@@ -12,6 +12,7 @@ __pycache__/
 venv/
 env/
 env-bak/
+.venv
 
 # Local development settings
 .DS_Store
