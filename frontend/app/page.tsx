@@ -1,7 +1,5 @@
 'use client';
-import React from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from 'react';
 import {
   Form,
   FormControl,
@@ -16,11 +14,23 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import axios, { AxiosError } from 'axios';
-import { useStudentStore } from '@/hooks/useStudentStore';
-import { LoginErrorCode, Student, TokensType } from '@/types/globalTypes';
+import { LoginErrorCode, TokensType } from '@/types/globalTypes';
 import { useToast } from '@/components/ui/use-toast';
 import { setCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
+import {
+  Box,
+  Card,
+  Container,
+  Flex,
+  Heading,
+  TextField,
+  Theme,
+  Button,
+  ThemePanel,
+} from '@radix-ui/themes';
+import { useBoundStore } from '@/hooks/useBoundStore';
+import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
 
 const formSchema = z.object({
   username: z
@@ -44,6 +54,8 @@ const Login: React.FC = () => {
       password: '',
     },
   });
+  const theme = useBoundStore((state) => state.theme);
+  const switchTheme = useBoundStore((state) => state.switchTheme);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     axios
@@ -60,7 +72,6 @@ const Login: React.FC = () => {
         }
       )
       .then(({ data }: { data: TokensType | LoginErrorCode }) => {
-        console.log(data);
         if ('code' in data) {
           toast({
             title: 'خطا!',
@@ -103,86 +114,124 @@ const Login: React.FC = () => {
       });
   };
 
+  const handleSignup = () => {
+    router.push('/register');
+  };
+
   return (
     <>
-      <div className="flex justify-center items-center min-h-screen w-full">
-        <div className="flex flex-col justify-start items-center h-3/4 gap-6">
-          <div className="flex justify-center items-center">
-            <Image
-              src="/logo.png"
-              alt="Nooshirvani's logo"
-              sizes="100vw"
-              className="w-full h-auto"
-              width={163}
-              height={227}
-            />
-          </div>
-          <h1 className="mt-6 sm:text-base md:text-2xl lg:text-3xl text-base text-center">
-            سامانه ثبت درخواست دستیار آموزشی دانشگاه صنعتی نوشیروانی
-          </h1>
-          <Form {...form}>
-            <form
-              className="rounded px-8 pt-6 pb-8 mb-4 w-2/3"
-              onSubmit={form.handleSubmit(onSubmit)}
-            >
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem className="text-gray-700">
-                    <FormLabel className="text-xs md:text-base font-bold mb-2">
-                      شماره دانشجویی
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="شماره دانشجویی خود را وارد کنید"
-                        className="bg-transparent appearance-none border text-xs md:text-base border-gray-900 rounded-xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem className="mt-4 text-gray-700">
-                    <FormLabel className="font-bold mb-2 text-xs md:text-base">
-                      رمزعبور
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="رمز عبور خود را وارد کنید"
-                        className="bg-transparent text-xs md:text-base appearance-none border border-gray-900 rounded-xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-col gap-3 mt-6 items-center justify-between">
-                <Button
-                  variant="default"
-                  className="bg-blue-500 rounded-2xl w-1/2 text-white font-bold py-2 px-4 focus:outline-none focus:shadow-outline"
-                  type="submit"
-                >
-                  ورود
-                </Button>
-                <Link
-                  className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
-                  href="#"
-                >
-                  رمز عبور خود را فراموش کرده اید؟
-                </Link>
-              </div>
-            </form>
-          </Form>
-        </div>
-      </div>
+      <Theme appearance={theme} accentColor="blue" grayColor="slate">
+        <Box className="h-screen bg-gradient-to-br from-sky-900">
+          <Button
+            style={{ marginTop: 12, marginRight: 12 }}
+            color="gray"
+            variant="ghost"
+            onClick={() => {
+              switchTheme();
+            }}
+          >
+            {theme === 'dark' ? (
+              <MoonIcon width={16} height={16} />
+            ) : (
+              <SunIcon width={16} height={16} />
+            )}
+          </Button>
+          <Flex
+            className="max-w-screen-xl mx-auto"
+            align="center"
+            style={{
+              height: 'calc(100vh - 36px)',
+            }}
+          >
+            <Container size="3">
+              <Card>
+                <Flex direction="column" p="6" align="center">
+                  <Box className="h-1/2">
+                    <Image
+                      src="/logo.png"
+                      alt="Nooshirvani's logo"
+                      width={163}
+                      height={227}
+                    />
+                  </Box>
+                  <Heading mt="6" size="7">
+                    سامانه ثبت درخواست دستیار آموزشی دانشگاه صنعتی نوشیروانی
+                  </Heading>
+                  <Flex
+                    direction="column"
+                    gap="3"
+                    mt="6"
+                    className="w-full justify-start"
+                  >
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)}>
+                        <Flex direction="column" className="w-1/2 mx-auto">
+                          <FormField
+                            control={form.control}
+                            name="username"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-xs md:text-base font-bold mb-2">
+                                  نام کاربری
+                                </FormLabel>
+                                <FormControl>
+                                  <TextField.Input
+                                    size="2"
+                                    {...field}
+                                    placeholder="نام کاربری خود را وارد کنید"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem className="mt-4">
+                                <FormLabel className="font-bold mb-2 text-xs md:text-base">
+                                  رمزعبور
+                                </FormLabel>
+                                <FormControl>
+                                  <TextField.Input
+                                    type="password"
+                                    placeholder="رمز عبور خود را وارد کنید"
+                                    className="bg-transparent text-xs md:text-base appearance-none border border-gray-900 rounded-xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </Flex>
+                        <Flex gap="3" className="mt-6" justify="center">
+                          <Button
+                            variant="surface"
+                            className="w-1/6 py-2 px-4"
+                            type="submit"
+                          >
+                            ورود
+                          </Button>
+                          <Button
+                            onClick={form.handleSubmit(handleSignup)}
+                            variant="soft"
+                            className="w-1/6 py-2 px-4"
+                            type="submit"
+                          >
+                            ثبت نام
+                          </Button>
+                        </Flex>
+                      </form>
+                    </Form>
+                  </Flex>
+                </Flex>
+              </Card>
+            </Container>
+          </Flex>
+        </Box>
+      </Theme>
     </>
   );
 };
