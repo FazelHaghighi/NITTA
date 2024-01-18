@@ -8,7 +8,11 @@ import { redirect, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Box, Button, Card, Theme } from '@radix-ui/themes';
 import { Student, Teacher } from '@/types/globalTypes';
-import Header from './header';
+import TeacherDashboard from './teacher-dashboard';
+import StudentDashboard from './student-dashboard.';
+import dynamic from 'next/dynamic';
+
+const Header = dynamic(() => import('./header'));
 
 export async function getUser() {
   const access_token = getCookie('access_token');
@@ -33,6 +37,8 @@ export async function getUser() {
     }
     if (user.new_access_token) {
       setCookie('access_token', user.new_access_token);
+      if ('student' in user) return user.student;
+      else return user.teacher;
     }
 
     return user;
@@ -54,7 +60,6 @@ const Dashboard = () => {
 
   useEffect(() => {
     getUser().then((res) => {
-      console.log(res);
       if ('teacher' in res) {
         updateTeacher(res.teacher);
         isStudent = 1;
@@ -72,6 +77,11 @@ const Dashboard = () => {
         theme={theme}
         switchTheme={switchTheme}
       />
+      {isStudent === 1 ? (
+        <TeacherDashboard teacher={teacher} />
+      ) : (
+        <StudentDashboard student={student} />
+      )}
     </>
   );
 };

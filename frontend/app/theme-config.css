@@ -1,3 +1,7 @@
 .radix-themes {
   --default-font-family: var(--font-vazirmatn) !important;
 }
+
+table {
+  border-collapse: separate !important;
+}

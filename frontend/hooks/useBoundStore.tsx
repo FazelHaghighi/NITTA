@@ -1,6 +1,8 @@
 import { StateCreator, create } from 'zustand';
 import { Student, Teacher, ThemeType } from '@/types/globalTypes';
 
+type Department = string;
+
 type StudentSlice = {
   student: Student;
   updateStudent: (student: Student) => void;
@@ -15,6 +17,11 @@ type ThemeSlice = {
   theme: ThemeType;
   switchTheme: () => void;
   setTheme: (theme: ThemeType) => void;
+};
+
+type CurrentDepartmentSlice = {
+  currDep: Department;
+  setCurrDep: (currDep: Department) => void;
 };
 
 const createStudentSlice: StateCreator<StudentSlice> = (set) => ({
@@ -60,10 +67,18 @@ const createThemeSlice: StateCreator<ThemeSlice> = (set) => ({
   setTheme: (theme) => set(() => ({ theme: theme })),
 });
 
-export const useBoundStore = create<StudentSlice & ThemeSlice & TeacherSlice>()(
-  (...a) => ({
-    ...createStudentSlice(...a),
-    ...createThemeSlice(...a),
-    ...createTeacherSlice(...a),
-  })
-);
+const createCurrentDepartmentSlice: StateCreator<CurrentDepartmentSlice> = (
+  set
+) => ({
+  currDep: '',
+  setCurrDep: (currDep) => set(() => ({ currDep: currDep })),
+});
+
+export const useBoundStore = create<
+  StudentSlice & ThemeSlice & TeacherSlice & CurrentDepartmentSlice
+>()((...a) => ({
+  ...createStudentSlice(...a),
+  ...createThemeSlice(...a),
+  ...createTeacherSlice(...a),
+  ...createCurrentDepartmentSlice(...a),
+}));

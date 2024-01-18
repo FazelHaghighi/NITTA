@@ -1,12 +1,20 @@
 'use client';
-import { Avatar, Button, Flex, Text } from '@radix-ui/themes';
-import { SunIcon, MoonIcon } from '@radix-ui/react-icons';
+import { Avatar, Box, Button, Flex, IconButton, Text } from '@radix-ui/themes';
+import { SunIcon, MoonIcon, HamburgerMenuIcon } from '@radix-ui/react-icons';
 import { Student, Teacher, ThemeType } from '@/types/globalTypes';
 import { deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
-export default function Header({
+function DeesktopHeader({
   user,
   theme,
   switchTheme,
@@ -120,5 +128,124 @@ export default function Header({
         )}
       </Flex>
     </Flex>
+  );
+}
+
+export default function Header({
+  user,
+  theme,
+  switchTheme,
+}: {
+  user: Student | Teacher;
+  theme: ThemeType;
+  switchTheme: () => void;
+}) {
+  const router = useRouter();
+
+  return (
+    <>
+      <Box
+        display={{
+          initial: 'none',
+          sm: 'block',
+        }}
+      >
+        <DeesktopHeader user={user} theme={theme} switchTheme={switchTheme} />
+      </Box>
+      <Box
+        display={{
+          initial: 'block',
+          sm: 'none',
+        }}
+      >
+        <Flex className="w-full border-b h-[48px] px-4" justify="between">
+          <Sheet>
+            <SheetTrigger>
+              <IconButton size="2" variant="ghost" color="gray">
+                <HamburgerMenuIcon width={16} height={16} />
+              </IconButton>
+            </SheetTrigger>
+            <SheetContent className="w-[200px]">
+              <SheetHeader>
+                <SheetTitle>Are you absolutely sure?</SheetTitle>
+                <SheetDescription>
+                  This action cannot be undone. This will permanently delete
+                  your account and remove your data from our servers.
+                </SheetDescription>
+              </SheetHeader>
+            </SheetContent>
+          </Sheet>
+          <Flex gap="6" className="pt-1" align="center" dir="ltr">
+            <Button
+              color="gray"
+              variant="ghost"
+              onClick={() => {
+                switchTheme();
+                localStorage.setItem(
+                  'theme',
+                  theme === 'dark' ? 'light' : 'dark'
+                );
+              }}
+            >
+              {theme === 'dark' ? (
+                <MoonIcon width={16} height={16} />
+              ) : (
+                <SunIcon width={16} height={16} />
+              )}
+            </Button>
+            <Button
+              size="1"
+              variant="ghost"
+              style={{
+                backgroundColor: theme === 'dark' ? 'white' : 'black',
+                color: theme === 'dark' ? 'black' : 'white',
+                fontSize: 'var(--font-size-2)',
+              }}
+            >
+              درخواست
+            </Button>
+            <Button
+              onClick={() => {
+                router.push('/rate');
+              }}
+              variant="ghost"
+              color="gray"
+              className={`${
+                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
+              } hover:cursor-pointer`}
+            >
+              امتیاز
+            </Button>
+            <Button
+              onClick={() => {
+                router.push('/messages');
+              }}
+              variant="ghost"
+              color="gray"
+              className={`${
+                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
+              } hover:cursor-pointer`}
+            >
+              پیام ها
+            </Button>
+            <Button
+              onClick={() => {
+                deleteCookie('access_token');
+                deleteCookie('refresh_token');
+
+                router.push('/');
+              }}
+              variant="ghost"
+              color="red"
+              className={`${
+                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
+              } hover:cursor-pointer`}
+            >
+              خروج
+            </Button>
+          </Flex>
+        </Flex>
+      </Box>
+    </>
   );
 }
