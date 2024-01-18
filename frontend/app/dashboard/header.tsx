@@ -1,19 +1,10 @@
 'use client';
-import {
-  Avatar,
-  Box,
-  Button,
-  Flex,
-  Heading,
-  Text,
-  Theme,
-} from '@radix-ui/themes';
+import { Avatar, Button, Flex, Text } from '@radix-ui/themes';
 import { SunIcon, MoonIcon } from '@radix-ui/react-icons';
 import { Student, Teacher, ThemeType } from '@/types/globalTypes';
 import { deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useBoundStore } from '@/hooks/useBoundStore';
 
 export default function Header({
   user,
