@@ -16,6 +16,10 @@ export type LoginErrorCode = {
   code: string;
 };
 
+export type RegisterErrorCode = {
+  code: string;
+};
+
 export type TokensType = {
   access_token: string;
   refresh_token: string;

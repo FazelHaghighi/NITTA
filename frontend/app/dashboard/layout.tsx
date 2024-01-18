@@ -16,7 +16,6 @@ async function getUser() {
         access_token: access_token?.value,
         refresh_token: refresh_token?.value,
       }),
-      cache: 'no-cache',
     });
 
     const user = await res.json();

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Form,
   FormControl,
@@ -9,12 +9,11 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import Image from 'next/image';
-import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import axios, { AxiosError } from 'axios';
-import { LoginErrorCode, ThemeType, TokensType } from '@/types/globalTypes';
+import { LoginErrorCode, TokensType } from '@/types/globalTypes';
 import { useToast } from '@/components/ui/use-toast';
 import { setCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
@@ -25,12 +24,11 @@ import {
   Flex,
   Heading,
   TextField,
-  Theme,
   Button,
-  ThemePanel,
 } from '@radix-ui/themes';
 import { useBoundStore } from '@/hooks/useBoundStore';
 import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
+import Link from 'next/link';
 
 const formSchema = z.object({
   username: z
@@ -112,10 +110,6 @@ const Login: React.FC = () => {
           console.log('Error', error.message);
         }
       });
-  };
-
-  const handleSignup = () => {
-    router.push('/register');
   };
 
   return (
@@ -223,14 +217,15 @@ const Login: React.FC = () => {
                         >
                           ورود
                         </Button>
-                        <Button
-                          onClick={form.handleSubmit(handleSignup)}
-                          variant="soft"
-                          className="w-1/6 py-2 px-4"
-                          type="submit"
-                        >
-                          ثبت نام
-                        </Button>
+                        <Link href="/register" className="w-1/6">
+                          <Button
+                            className="w-full"
+                            variant="soft"
+                            type="submit"
+                          >
+                            ثبت نام
+                          </Button>
+                        </Link>
                       </Flex>
                     </form>
                   </Form>
