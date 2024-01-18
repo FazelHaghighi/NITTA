@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import '@radix-ui/themes/styles.css';
 import './theme-config.css';
+import WrapperRootLatout from './wrapper-layout';
 
 const vazirmatn = Vazirmatn({
   subsets: ['arabic'],
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html dir="rtl" lang="fa" className={vazirmatn.variable}>
       <body>
-        {children}
+        <WrapperRootLatout>{children}</WrapperRootLatout>
         <Toaster />
       </body>
     </html>

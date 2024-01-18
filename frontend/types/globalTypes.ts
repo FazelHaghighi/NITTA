@@ -1,8 +1,15 @@
 export type Student = {
-  id: number;
+  id: string;
   email: string;
   name: string;
   username: string;
+};
+
+export type Teacher = {
+  name: string;
+  email: string;
+  username: string;
+  depName: string;
 };
 
 export type LoginErrorCode = {

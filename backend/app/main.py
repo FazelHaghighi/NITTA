@@ -18,7 +18,7 @@ from schemas import (
 )
 from database import SessionLocal, engine
 from fastapi.middleware.cors import CORSMiddleware
-from api import login, authorize, getStudentById
+from api import login, authorize, getUserById
 from pydantic import BaseModel
 
 class User(BaseModel):
@@ -61,9 +61,9 @@ async def authentication(user: User):
 async def authorization(tokens: Tokens):
     return authorize(tokens)
 
-@app.post("/getStudentById")
-async def get_student_by_id(tokens: Tokens):
-    return getStudentById(tokens)
+@app.post("/getUserById")
+async def get_user_by_id(tokens: Tokens):
+    return getUserById(tokens)
 
 @app.post("/tas/{ta_id}/ratings/", response_model=TARating)
 async def submit_ta_rating(ta_id: int, rating: TARatingCreate, db: Session = Depends(get_db)):

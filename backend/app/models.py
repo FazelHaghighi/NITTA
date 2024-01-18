@@ -10,6 +10,7 @@ class Student(Base):
     name = Column(String)
     email = Column(String, unique=True, index=True)
     password = Column(String)
+    student_number = Column(String)
 
 
 class TA(Base):

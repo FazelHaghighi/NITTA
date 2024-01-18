@@ -14,7 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 import axios, { AxiosError } from 'axios';
-import { LoginErrorCode, TokensType } from '@/types/globalTypes';
+import { LoginErrorCode, ThemeType, TokensType } from '@/types/globalTypes';
 import { useToast } from '@/components/ui/use-toast';
 import { setCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
@@ -120,118 +120,126 @@ const Login: React.FC = () => {
 
   return (
     <>
-      <Theme appearance={theme} accentColor="blue" grayColor="slate">
-        <Box className="h-screen bg-gradient-to-br from-sky-900">
+      <Box className="h-screen bg-gradient-to-br from-sky-900">
+        <Flex
+          className="w-full px-12 h-[60px]"
+          justify="between"
+          align="center"
+          dir="ltr"
+        >
           <Button
-            style={{ marginTop: 12, marginRight: 12 }}
             color="gray"
             variant="ghost"
             onClick={() => {
               switchTheme();
+              localStorage.setItem(
+                'theme',
+                theme === 'dark' ? 'light' : 'dark'
+              );
             }}
           >
             {theme === 'dark' ? (
               <MoonIcon width={16} height={16} />
             ) : (
-              <SunIcon width={16} height={16} />
+              <SunIcon color="white" width={16} height={16} />
             )}
           </Button>
-          <Flex
-            className="max-w-screen-xl mx-auto"
-            align="center"
-            style={{
-              height: 'calc(100vh - 36px)',
-            }}
-          >
-            <Container size="3">
-              <Card>
-                <Flex direction="column" p="6" align="center">
-                  <Box className="h-1/2">
-                    <Image
-                      src="/logo.png"
-                      alt="Nooshirvani's logo"
-                      width={163}
-                      height={227}
-                    />
-                  </Box>
-                  <Heading mt="6" size="7">
-                    سامانه ثبت درخواست دستیار آموزشی دانشگاه صنعتی نوشیروانی
-                  </Heading>
-                  <Flex
-                    direction="column"
-                    gap="3"
-                    mt="6"
-                    className="w-full justify-start"
-                  >
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)}>
-                        <Flex direction="column" className="w-1/2 mx-auto">
-                          <FormField
-                            control={form.control}
-                            name="username"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs md:text-base font-bold mb-2">
-                                  نام کاربری
-                                </FormLabel>
-                                <FormControl>
-                                  <TextField.Input
-                                    size="2"
-                                    {...field}
-                                    placeholder="نام کاربری خود را وارد کنید"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                              <FormItem className="mt-4">
-                                <FormLabel className="font-bold mb-2 text-xs md:text-base">
-                                  رمزعبور
-                                </FormLabel>
-                                <FormControl>
-                                  <TextField.Input
-                                    type="password"
-                                    placeholder="رمز عبور خود را وارد کنید"
-                                    className="bg-transparent text-xs md:text-base appearance-none border border-gray-900 rounded-xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </Flex>
-                        <Flex gap="3" className="mt-6" justify="center">
-                          <Button
-                            variant="surface"
-                            className="w-1/6 py-2 px-4"
-                            type="submit"
-                          >
-                            ورود
-                          </Button>
-                          <Button
-                            onClick={form.handleSubmit(handleSignup)}
-                            variant="soft"
-                            className="w-1/6 py-2 px-4"
-                            type="submit"
-                          >
-                            ثبت نام
-                          </Button>
-                        </Flex>
-                      </form>
-                    </Form>
-                  </Flex>
+        </Flex>
+        <Flex
+          className="max-w-screen-xl mx-auto"
+          align="center"
+          style={{
+            height: 'calc(100vh - 60px)',
+          }}
+        >
+          <Container size="3">
+            <Card>
+              <Flex direction="column" p="6" align="center">
+                <Box className="h-1/2">
+                  <Image
+                    src="/logo.png"
+                    alt="Nooshirvani's logo"
+                    width={163}
+                    height={227}
+                  />
+                </Box>
+                <Heading mt="6" size="7">
+                  سامانه ثبت درخواست دستیار آموزشی دانشگاه صنعتی نوشیروانی
+                </Heading>
+                <Flex
+                  direction="column"
+                  gap="3"
+                  mt="6"
+                  className="w-full justify-start"
+                >
+                  <Form {...form}>
+                    <form onSubmit={form.handleSubmit(onSubmit)}>
+                      <Flex direction="column" className="w-1/2 mx-auto">
+                        <FormField
+                          control={form.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs md:text-base font-bold mb-2">
+                                نام کاربری
+                              </FormLabel>
+                              <FormControl>
+                                <TextField.Input
+                                  size="2"
+                                  {...field}
+                                  placeholder="نام کاربری خود را وارد کنید"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem className="mt-4">
+                              <FormLabel className="font-bold mb-2 text-xs md:text-base">
+                                رمزعبور
+                              </FormLabel>
+                              <FormControl>
+                                <TextField.Input
+                                  type="password"
+                                  placeholder="رمز عبور خود را وارد کنید"
+                                  className="bg-transparent text-xs md:text-base appearance-none border border-gray-900 rounded-xl w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </Flex>
+                      <Flex gap="3" className="mt-6" justify="center">
+                        <Button
+                          variant="surface"
+                          className="w-1/6 py-2 px-4"
+                          type="submit"
+                        >
+                          ورود
+                        </Button>
+                        <Button
+                          onClick={form.handleSubmit(handleSignup)}
+                          variant="soft"
+                          className="w-1/6 py-2 px-4"
+                          type="submit"
+                        >
+                          ثبت نام
+                        </Button>
+                      </Flex>
+                    </form>
+                  </Form>
                 </Flex>
-              </Card>
-            </Container>
-          </Flex>
-        </Box>
-      </Theme>
+              </Flex>
+            </Card>
+          </Container>
+        </Flex>
+      </Box>
     </>
   );
 };

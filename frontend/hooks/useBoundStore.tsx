@@ -1,20 +1,25 @@
 import { StateCreator, create } from 'zustand';
-import { Student, ThemeType } from '@/types/globalTypes';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { Student, Teacher, ThemeType } from '@/types/globalTypes';
 
 type StudentSlice = {
   student: Student;
   updateStudent: (student: Student) => void;
 };
 
+type TeacherSlice = {
+  teacher: Teacher;
+  updateTeacher: (teacher: Teacher) => void;
+};
+
 type ThemeSlice = {
   theme: ThemeType;
   switchTheme: () => void;
+  setTheme: (theme: ThemeType) => void;
 };
 
 const createStudentSlice: StateCreator<StudentSlice> = (set) => ({
   student: {
-    id: -1,
+    id: '',
     email: '',
     name: '',
     username: '',
@@ -30,25 +35,35 @@ const createStudentSlice: StateCreator<StudentSlice> = (set) => ({
     })),
 });
 
+const createTeacherSlice: StateCreator<TeacherSlice> = (set) => ({
+  teacher: {
+    depName: '',
+    email: '',
+    name: '',
+    username: '',
+  },
+  updateTeacher: ({ depName, email, name, username }) =>
+    set(() => ({
+      teacher: {
+        depName: depName,
+        email: email,
+        name: name,
+        username: username,
+      },
+    })),
+});
+
 const createThemeSlice: StateCreator<ThemeSlice> = (set) => ({
   theme: 'dark',
   switchTheme: () =>
     set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
+  setTheme: (theme) => set(() => ({ theme: theme })),
 });
 
-export const useBoundStore = create<StudentSlice & ThemeSlice>()(
-  persist(
-    (...a) => ({
-      ...createStudentSlice(...a),
-      ...createThemeSlice(...a),
-    }),
-    {
-      name: 'bound-storage',
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({
-        theme: state.theme,
-        switchTheme: state.switchTheme,
-      }),
-    }
-  )
+export const useBoundStore = create<StudentSlice & ThemeSlice & TeacherSlice>()(
+  (...a) => ({
+    ...createStudentSlice(...a),
+    ...createThemeSlice(...a),
+    ...createTeacherSlice(...a),
+  })
 );
