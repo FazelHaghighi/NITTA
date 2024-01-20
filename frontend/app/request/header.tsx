@@ -13,8 +13,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { useToast } from '@/components/ui/use-toast';
-import { useBoundStore } from '@/hooks/useBoundStore';
 
 function DeesktopHeader({
   user,
@@ -26,8 +24,6 @@ function DeesktopHeader({
   switchTheme: () => void;
 }) {
   const router = useRouter();
-  const { toast } = useToast();
-  const request = useBoundStore((state) => state.request);
 
   return (
     <Flex
@@ -51,79 +47,53 @@ function DeesktopHeader({
             <SunIcon width={16} height={16} />
           )}
         </Button>
-        {'id' in user && (
-          <>
-            <Button
-              size="1"
-              variant="ghost"
-              style={{
-                backgroundColor: theme === 'dark' ? 'white' : 'black',
-                color: theme === 'dark' ? 'black' : 'white',
-                fontSize: 'var(--font-size-2)',
-              }}
-            >
-              انتخاب درس
-            </Button>
-            <Button
-              variant="ghost"
-              color="gray"
-              className={`${
-                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
-              } hover:cursor-pointer`}
-              onClick={() => {
-                if (request.student.id === '') {
-                  toast({
-                    description: 'لطفا از منوی اصلی درسی را انتخاب کنید',
-                    variant: 'destructive',
-                  });
-                  return;
-                }
-                router.push('/request');
-              }}
-            >
-              ثبت درخواست
-            </Button>
-            <Button
-              onClick={() => {
-                router.push('/my-requests');
-              }}
-              variant="ghost"
-              color="gray"
-              className={`${
-                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
-              } hover:cursor-pointer`}
-            >
-              درخواست های من
-            </Button>
-            <Button
-              onClick={() => {
-                router.push('/rate');
-              }}
-              variant="ghost"
-              color="gray"
-              className={`${
-                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
-              } hover:cursor-pointer`}
-            >
-              امتیاز
-            </Button>
-          </>
-        )}
-        {'depName' in user && (
-          <>
-            <Button
-              size="1"
-              variant="ghost"
-              style={{
-                backgroundColor: theme === 'dark' ? 'white' : 'black',
-                color: theme === 'dark' ? 'black' : 'white',
-                fontSize: 'var(--font-size-2)',
-              }}
-            >
-              درخواست ها{' '}
-            </Button>
-          </>
-        )}
+        <Button
+          variant="ghost"
+          color="gray"
+          onClick={() => {
+            router.push('/dashboard');
+          }}
+          className={`${
+            theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
+          } hover:cursor-pointer`}
+        >
+          انتخاب درس
+        </Button>
+        <Button
+          size="1"
+          variant="ghost"
+          style={{
+            backgroundColor: theme === 'dark' ? 'white' : 'black',
+            color: theme === 'dark' ? 'black' : 'white',
+            fontSize: 'var(--font-size-2)',
+          }}
+        >
+          ثبت درخواست
+        </Button>
+        <Button
+          onClick={() => {
+            router.push('/my-requests');
+          }}
+          variant="ghost"
+          color="gray"
+          className={`${
+            theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
+          } hover:cursor-pointer`}
+        >
+          درخواست های من
+        </Button>
+        <Button
+          onClick={() => {
+            router.push('/rate');
+          }}
+          variant="ghost"
+          color="gray"
+          className={`${
+            theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
+          } hover:cursor-pointer`}
+        >
+          امتیاز
+        </Button>
         <Button
           onClick={() => {
             deleteCookie('access_token');
@@ -251,7 +221,7 @@ export default function Header({
                 fontSize: 'var(--font-size-2)',
               }}
             >
-              انتخاب درس
+              انتخاب
             </Button>
             <Button
               size="1"

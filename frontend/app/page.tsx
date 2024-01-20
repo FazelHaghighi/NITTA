@@ -76,6 +76,8 @@ const Login: React.FC = () => {
             description:
               data.code === '-1'
                 ? 'کاربری با این نام وجود ندارد.'
+                : data.code === '-3'
+                ? 'مشکلی از سمت سرور پیش آمده است مجددا تلاش کنید.'
                 : 'رمز عبور اشتباه است.',
             variant: 'destructive',
           });

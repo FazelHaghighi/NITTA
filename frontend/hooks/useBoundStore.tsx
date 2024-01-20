@@ -1,5 +1,11 @@
 import { StateCreator, create } from 'zustand';
-import { Student, Teacher, ThemeType } from '@/types/globalTypes';
+import {
+  PartialTeacher,
+  Student,
+  Teacher,
+  ThemeType,
+} from '@/types/globalTypes';
+import { LessonAndTeacher } from '@/app/dashboard/student-dashboard.';
 
 type Department = string;
 
@@ -22,6 +28,19 @@ type ThemeSlice = {
 type CurrentDepartmentSlice = {
   currDep: Department;
   setCurrDep: (currDep: Department) => void;
+};
+
+type CurrentStudentSlice = {
+  currStudent: Student;
+  setCurrStudent: (currDep: Student) => void;
+};
+
+type RequestSlice = {
+  request: {
+    reqInfo: LessonAndTeacher;
+    student: Student;
+  };
+  setRequest: (reqInfo: LessonAndTeacher, student: Student) => void;
 };
 
 const createStudentSlice: StateCreator<StudentSlice> = (set) => ({
@@ -61,7 +80,7 @@ const createTeacherSlice: StateCreator<TeacherSlice> = (set) => ({
 });
 
 const createThemeSlice: StateCreator<ThemeSlice> = (set) => ({
-  theme: 'dark',
+  theme: 'light',
   switchTheme: () =>
     set((state) => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
   setTheme: (theme) => set(() => ({ theme: theme })),
@@ -74,11 +93,72 @@ const createCurrentDepartmentSlice: StateCreator<CurrentDepartmentSlice> = (
   setCurrDep: (currDep) => set(() => ({ currDep: currDep })),
 });
 
+const createRequestSlice: StateCreator<RequestSlice> = (set) => ({
+  request: {
+    reqInfo: {
+      lessonName: '',
+      teacherName: '',
+      lessonPrerequisite: [],
+      lessonUnit: -1,
+      teacherEmail: '',
+    },
+    student: {
+      id: '',
+      email: '',
+      name: '',
+      username: '',
+    },
+  },
+  setRequest: (reqInfo, student) =>
+    set(() => ({
+      request: {
+        reqInfo: {
+          lessonName: reqInfo.lessonName,
+          teacherName: reqInfo.teacherName,
+          lessonPrerequisite: reqInfo.lessonPrerequisite,
+          lessonUnit: reqInfo.lessonUnit,
+          teacherEmail: reqInfo.teacherEmail,
+        },
+        student: {
+          id: student.id,
+          email: student.email,
+          name: student.name,
+          username: student.username,
+        },
+      },
+    })),
+});
+
+const createCurrentStudentSlice: StateCreator<CurrentStudentSlice> = (set) => ({
+  currStudent: {
+    email: '',
+    id: '',
+    name: '',
+    username: '',
+  },
+  setCurrStudent: (currStudent) =>
+    set(() => ({
+      currStudent: {
+        email: currStudent.email,
+        id: currStudent.id,
+        name: currStudent.name,
+        username: currStudent.username,
+      },
+    })),
+});
+
 export const useBoundStore = create<
-  StudentSlice & ThemeSlice & TeacherSlice & CurrentDepartmentSlice
+  StudentSlice &
+    ThemeSlice &
+    TeacherSlice &
+    CurrentDepartmentSlice &
+    RequestSlice &
+    CurrentStudentSlice
 >()((...a) => ({
   ...createStudentSlice(...a),
   ...createThemeSlice(...a),
   ...createTeacherSlice(...a),
   ...createCurrentDepartmentSlice(...a),
+  ...createRequestSlice(...a),
+  ...createCurrentStudentSlice(...a),
 }));

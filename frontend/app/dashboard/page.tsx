@@ -31,6 +31,8 @@ export async function getUser() {
 
     const user = await res.data;
 
+    console.log(user);
+
     if (user.code === '1' || user.code === '2') {
       console.log('some error occured');
       return;

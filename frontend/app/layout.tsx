@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
-import { Vazirmatn } from 'next/font/google';
+import localFont from 'next/font/local';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import '@radix-ui/themes/styles.css';
 import './theme-config.css';
 import WrapperRootLatout from './wrapper-layout';
 
-const vazirmatn = Vazirmatn({
-  subsets: ['arabic'],
+const vazirmatn = localFont({
+  src: '../font/Vazirmatn-VariableFont_wght.ttf',
   display: 'swap',
   variable: '--font-vazirmatn',
 });

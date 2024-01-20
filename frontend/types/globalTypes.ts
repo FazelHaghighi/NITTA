@@ -1,3 +1,5 @@
+import { string } from 'zod';
+
 export type Student = {
   id: string;
   email: string;
@@ -9,6 +11,12 @@ export type Teacher = {
   name: string;
   email: string;
   username: string;
+  depName: string;
+};
+
+export type PartialTeacher = {
+  name: string;
+  email: string;
   depName: string;
 };
 
