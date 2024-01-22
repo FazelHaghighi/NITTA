@@ -90,26 +90,20 @@ export default function MyRequests() {
   }, []);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/getTeachersStudentRequestedFor', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ student_number: student.id }),
-    })
+    fetch(
+      'http://127.0.0.1:8000/getTeachersStudentRequestedFor?' +
+        new URLSearchParams({ student_number: student.id })
+    )
       .then((res) => res.json())
       .then((res) => {
         console.log(res);
         setTeachers(res);
       });
 
-    fetch('http://127.0.0.1:8000/getLessonsStudentRequestedFor', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ student_number: student.id }),
-    })
+    fetch(
+      'http://127.0.0.1:8000/getLessonsStudentRequestedFor?' +
+        new URLSearchParams({ student_number: student.id })
+    )
       .then((res) => res.json())
       .then((res) => {
         const newLessons: LessonAndTeacher[] = [];

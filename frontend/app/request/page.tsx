@@ -74,7 +74,10 @@ export default function RequestPage() {
   const onSubmit: FormEventHandler<HTMLElement> = async (event) => {
     event.preventDefault();
     if (errors.includes(true) || emptyErrors.includes(true)) return;
-    if (preqsGrades.length === 0) {
+    if (
+      preqsGrades.length === 0 &&
+      request.reqInfo.lessonPrerequisite.length !== 0
+    ) {
       setEmptyErrors([...emptyErrors.fill(true)]);
       return;
     }

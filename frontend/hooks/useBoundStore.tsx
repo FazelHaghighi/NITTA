@@ -1,5 +1,6 @@
 import { StateCreator, create } from 'zustand';
 import {
+  PartialStudent,
   PartialTeacher,
   Student,
   Teacher,
@@ -8,6 +9,11 @@ import {
 import { LessonAndTeacher } from '@/app/dashboard/student-dashboard.';
 
 type Department = string;
+
+type Lesson = {
+  name: string;
+  units: string;
+};
 
 type StudentSlice = {
   student: Student;
@@ -30,9 +36,9 @@ type CurrentDepartmentSlice = {
   setCurrDep: (currDep: Department) => void;
 };
 
-type CurrentStudentSlice = {
-  currStudent: Student;
-  setCurrStudent: (currDep: Student) => void;
+type CurrentLessonSlice = {
+  currLesson: Lesson;
+  setCurrLesson: (currLesson: Lesson) => void;
 };
 
 type RequestSlice = {
@@ -129,20 +135,16 @@ const createRequestSlice: StateCreator<RequestSlice> = (set) => ({
     })),
 });
 
-const createCurrentStudentSlice: StateCreator<CurrentStudentSlice> = (set) => ({
-  currStudent: {
-    email: '',
-    id: '',
+const createCurrentLessonSlice: StateCreator<CurrentLessonSlice> = (set) => ({
+  currLesson: {
     name: '',
-    username: '',
+    units: '',
   },
-  setCurrStudent: (currStudent) =>
+  setCurrLesson: (currLesson) =>
     set(() => ({
-      currStudent: {
-        email: currStudent.email,
-        id: currStudent.id,
-        name: currStudent.name,
-        username: currStudent.username,
+      currLesson: {
+        name: currLesson.name,
+        units: currLesson.units,
       },
     })),
 });
@@ -153,12 +155,12 @@ export const useBoundStore = create<
     TeacherSlice &
     CurrentDepartmentSlice &
     RequestSlice &
-    CurrentStudentSlice
+    CurrentLessonSlice
 >()((...a) => ({
   ...createStudentSlice(...a),
   ...createThemeSlice(...a),
   ...createTeacherSlice(...a),
   ...createCurrentDepartmentSlice(...a),
   ...createRequestSlice(...a),
-  ...createCurrentStudentSlice(...a),
+  ...createCurrentLessonSlice(...a),
 }));

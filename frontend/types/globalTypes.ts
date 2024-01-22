@@ -7,6 +7,10 @@ export type Student = {
   username: string;
 };
 
+export type PartialStudent = {
+  name: string;
+};
+
 export type Teacher = {
   name: string;
   email: string;

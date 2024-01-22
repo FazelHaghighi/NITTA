@@ -27,12 +27,7 @@ function toArabicNumber(str: string) {
 
 async function getDeps() {
   try {
-    const res = await fetch('http://127.0.0.1:8000/getDepartments', {
-      method: 'get',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const res = await fetch('http://127.0.0.1:8000/getDepartments');
 
     return res.json();
   } catch (error) {
@@ -60,7 +55,6 @@ export default function StudentDashboard({ student }: { student: Student }) {
     'all'
   );
   const firstUpdate = useRef(true);
-  const pathname = usePathname();
 
   useEffect(() => {
     const newDeps: { name: string; selected: boolean }[] = [];
@@ -68,8 +62,8 @@ export default function StudentDashboard({ student }: { student: Student }) {
       res.departments.forEach((dep: string) => {
         newDeps.push({ name: dep, selected: false });
       });
+      setDeps([...newDeps]);
     });
-    setDeps(newDeps);
   }, []);
 
   useEffect(() => {
@@ -78,25 +72,19 @@ export default function StudentDashboard({ student }: { student: Student }) {
       return;
     }
 
-    fetch('http://127.0.0.1:8000/getTeachersByDepartment', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: currDep }),
-    })
+    fetch(
+      'http://127.0.0.1:8000/getTeachersByDepartment?' +
+        new URLSearchParams({ dep_name: currDep })
+    )
       .then((res) => res.json())
       .then((res) => {
         setTeachers(res);
       });
 
-    fetch('http://127.0.0.1:8000/getAllLessonsAndTeacherByDepartment', {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: currDep }),
-    })
+    fetch(
+      'http://127.0.0.1:8000/getAllLessonsAndTeacherByDepartment?' +
+        new URLSearchParams({ dep_name: currDep })
+    )
       .then((res) => res.json())
       .then((res) => {
         const newLessons: LessonAndTeacher[] = [];
