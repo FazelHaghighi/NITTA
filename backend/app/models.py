@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, TEXT, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, TEXT, ForeignKey, Boolean, TIMESTAMP, ARRAY, JSON
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -16,11 +16,19 @@ class Student(Base):
 class TA(Base):
     __tablename__ = "tas"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String)
-    rate = Column(Numeric)
+    student_id = Column(Integer, ForeignKey("students.id"))
+    lesson_id = Column(Integer, ForeignKey("lessons.id"))
+    teacher_id = Column(Integer, ForeignKey("teachers.id"))
     num_vote = Column(Integer)
-    comment = Column(TEXT)
     ratings = relationship("TARating", back_populates="ta")
+
+class TAComments(Base):
+    __tablename__ = "tas_comments"
+    id = Column(Integer, primary_key=True, index=True)
+    ta_id = Column(Integer, ForeignKey("students.id"))
+    student_id = Column(Integer, ForeignKey("students.id"))
+    comment = Column(JSON)
+    rate = Column(Numeric)
 
 
 class Department(Base):
@@ -33,7 +41,25 @@ class Lesson(Base):
     __tablename__ = "lessons"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
+    credit_points = Column(Integer)
 
+class LessonPrequisite(Base):
+    __tablename__ = "lesson_preq"
+    id = Column(Integer, primary_key=True, index=True)
+    lesson_id = Column(Integer, ForeignKey("lessons.id"))
+    preq_id = Column(Integer, ForeignKey("lessons.id"))
+
+class LessonRequisite(Base):
+    __tablename__ = "lesson_reqs"
+    id = Column(Integer, primary_key=True, index=True)
+    lesson_id = Column(Integer, ForeignKey("lessons.id"))
+    req_id = Column(Integer, ForeignKey("lessons.id"))
+
+class TeacherLesson(Base):
+    __tablename__ = "teacher_lessons"
+    id = Column(Integer, primary_key=True, index=True)
+    teacher_id = Column(Integer, ForeignKey("teachers.id"))
+    lesson_id = Column(Integer, ForeignKey("lessons.id"))
 
 class Teacher(Base):
     __tablename__ = "teachers"
@@ -43,7 +69,6 @@ class Teacher(Base):
     mail = Column(String, unique=True, index=True)
     password = Column(String)
     dep_id = Column(Integer, ForeignKey("departments.id"))
-    lesson_id = Column(Integer, ForeignKey("lessons.id"))
 
 
 class Request(Base):
@@ -52,7 +77,18 @@ class Request(Base):
     student_id = Column(Integer, ForeignKey("students.id"))
     teacher_id = Column(Integer, ForeignKey("teachers.id"))
     lesson_id = Column(Integer, ForeignKey("lessons.id"))
+    is_completed = Column(Boolean)
+    additional_note = Column(TEXT)
+    is_accepted = Column(Boolean)
+    created_at = Column(TIMESTAMP)
+    updated_at = Column(TIMESTAMP)
 
+class RequestPreq(Base):
+    __tablename__ = "request_preqs"
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, ForeignKey("requests.id"))
+    preq_id = Column(Integer, ForeignKey("lessons.id"))
+    grade = Column(Integer)
 
 class TARating(Base):
     __tablename__ = "ratings"
