@@ -1,14 +1,35 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, aliased
+from sqlalchemy.sql import func
 from argon2 import PasswordHasher
 import argon2
-from models import Student, Teacher, Department
+from models import Student, Teacher, Department, Lesson, TeacherLesson, LessonPrequisite, Request, RequestPreq, TA, TAComments
 from database import engine
-from sqlalchemy import select
+from sqlalchemy import select, exc, insert, case
 import jwt
 from datetime import datetime
 import calendar
+from crud import create_student
+from pydantic import BaseModel
+from schemas import StudentBase
+from typing import List
+from typing_extensions import TypedDict
+from config import settings
 
-secret = "WooWyVewwyStwongSeeecwetUwU:3"
+secret = settings.jwt_secret
+
+class StudentCreateRequest(BaseModel):
+    student_number: str
+    teacher_email: str
+    lesson_name: str
+    preq_grades: List[TypedDict('PreqGrade', {'preqName': str, 'grade': int})]
+    is_completed: bool
+    additional_note: str
+
+class RequestUpdate(BaseModel):
+    student_number: str
+    teacher_username: str
+    lessonName: str
+    is_accepted: bool
 
 session = Session(engine)
 
@@ -40,7 +61,7 @@ def login(username: str, password: str):
             }
         except argon2.exceptions.VerificationError:
             return {"code": "0"}
-    except:
+    except exc.NoResultFound:
         try:
             teacher = session.scalars(stm2).one()
 
@@ -63,8 +84,36 @@ def login(username: str, password: str):
                 }
             except argon2.exceptions.VerificationError:
                 return {"code": "0"}
-        except:
+        except exc.NoResultFound:
             return {"code": "-1"}
+    except exc.SQLAlchemyError:
+        return {"code": "-3"}
+
+def register(student: StudentBase):
+    ph = PasswordHasher()
+    student.password = ph.hash(student.password)
+    try:
+        created_student = create_student(session, student)
+    except exc.SQLAlchemyError:
+        print(exc.SQLAlchemyError._message())
+        return { "code": "0" }
+
+    access = {
+        "username": created_student.username,
+        "exp": calendar.timegm(datetime.now().timetuple()) + 7200
+    }
+    access_token = jwt.encode(access, secret, algorithm="HS256")
+
+    refresh = {
+        "exp": calendar.timegm(datetime.now().timetuple()) + 7200 * 12 * 30 * 6
+    }
+    refresh_token = jwt.encode(refresh, secret, algorithm="HS256")
+
+    return { 
+        "access_token": access_token,
+        "refresh_token": refresh_token
+    }
+
 
 def authorize(tokens): 
     try:
@@ -94,13 +143,50 @@ def authorize(tokens):
     except:
         return False
 
+def isStudent(tokens):
+    auth = authorize(tokens)
+
+    if auth == False:
+        return {"code": "-1"}
+    
+    elif 'isOk' in auth:
+        stm = select(Student).where(Student.username == auth['username']).limit(1)
+        stm1 = select(Teacher).where(Teacher.username == auth['username']).limit(1)
+
+        try: 
+            session.scalars(stm).one()
+            return {"code": "0"}
+        except exc.NoResultFound:
+            try:
+                session.scalars(stm1).one()
+                return {"code": "1"}
+            except exc.NoResultFound:
+                return {"code": "-3"}
+        except:
+            return { "code": "-2" }
+    else:
+        stm = select(Student).where(Student.username == auth['username']).limit(1)
+        stm1 = select(Teacher).where(Teacher.username == auth['username']).limit(1)
+
+        try: 
+            session.scalars(stm).one()
+            return {"code": "00", "new_access_token": auth['new_access_token']}
+        except exc.NoResultFound:
+            try:
+                session.scalars(stm1).one()
+                return {"code": "11", "new_access_token": auth['new_access_token']}
+            except exc.NoResultFound:
+                return {"code": "-33"}
+        except:
+            return { "code": "-2" }
+
 def getStudentById(tokens):
     auth = authorize(tokens)
 
     if auth == False:
         return {"code": "1"}
     
-    elif auth['isOk'] == "ok":
+    elif 'isOk' in auth:
         stm = select(Student).where(Student.username == auth['username']).limit(1)
         try:
             student = session.scalars(stm).one()
@@ -118,7 +204,7 @@ def getStudentById(tokens):
             "student": dictStudent
         }
     else:
-        stm = select(Student).where(Student.id == auth['username']).limit(1)
+        stm = select(Student).where(Student.username == auth['username']).limit(1)
         try:
             student = session.scalars(stm).one()
         except:  
@@ -144,7 +230,7 @@ def getTeacherById(tokens):
     if auth == False:
         return {"code": "1"}
     
-    elif auth['isOk'] == "ok":
+    elif 'isOk' in auth:
         stm1 = select(Teacher).where(Teacher.username == auth['username']).limit(1)
         stm2 = select(Department.name).join(Teacher, Department.id == Teacher.dep_id).where(Teacher.username == auth['username']).limit(1)
 
