@@ -1,5 +1,5 @@
 from typing import List, Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Json
 
 
 class StudentBase(BaseModel):
@@ -7,7 +7,7 @@ class StudentBase(BaseModel):
     name: str
     email: EmailStr
     password: str
-
+    student_number: str
 
 class StudentCreate(StudentBase):
     pass
@@ -37,6 +37,11 @@ class RequestBase(BaseModel):
     student_id: int
     teacher_id: int
     lesson_id: int
+    is_completed: bool
+    additional_note: str
+    is_accepted: bool
+    created_at: str
+    updated_at: str
 
 
 class RequestCreate(RequestBase):
@@ -44,6 +49,17 @@ class RequestCreate(RequestBase):
 
 
 class Request(RequestBase):
+    id: int
+
+class RequestPreqBase(BaseModel):
+    request_id: int
+    preq_id: int
+    grade: int
+
+class RequestPreqCreate(RequestPreqBase):
+    pass
+
+class RequestPreq(RequestPreqBase):
     id: int
 
     class Config:
@@ -56,8 +72,19 @@ class TeacherBase(BaseModel):
     mail: EmailStr
     password: str
     dep_id: int
+
+class TeacherLessonBase(BaseModel):
+    teacher_id: int
     lesson_id: int
 
+class TeacherLessonCreate(TeacherLessonBase):
+    pass
+
+class TeacherLesson(TeacherLessonBase):
+    id: int
+
+    class Config:
+        orm_mode = True
 
 class TeacherCreate(TeacherBase):
     pass
@@ -71,10 +98,12 @@ class Teacher(TeacherBase):
 
 
 class TABase(BaseModel):
-    name: str
+    student_id: int
+    lesson_id: int
+    teacher_id: int
     rate: float
     num_vote: int
-    comment: str
+    comments: List[str]
 
 
 class TACreate(TABase):
@@ -90,7 +119,62 @@ class TA(TABase):
 
 class LessonBase(BaseModel):
     name: str
+    credit_points: int
 
+
+class LessonPrequisiteBase(BaseModel):
+    lesson_id: int
+    preq_id: int
+
+class LessonPrequisiteCreate(LessonPrequisiteBase):
+    pass
+
+class LessonPrequisite(LessonPrequisiteBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class LessonRequisiteBase(BaseModel):
+    lesson_id: int
+    req_id: int
+
+class LessonRequisiteCreate(LessonRequisiteBase):
+    pass
+
+class LessonRequisite(LessonRequisiteBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class TeacherLessonBase(BaseModel):
+    teacher_id: int
+    lesson_id: int
+
+class TeacherLessonCreate(TeacherLessonBase):
+    pass
+
+class TeacherLesson(TeacherLessonBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+class TACommentsBase(BaseModel):
+    teacher_id: int
+    lesson_id: int
+    rate: float
+    comment: Json
+
+class TACommentsCreate(TACommentsBase):
+    pass
+
+class TAComments(TACommentsBase):
+    id: int
+
+    class Config:
+        orm_mode = True
 
 class LessonCreate(LessonBase):
     pass
