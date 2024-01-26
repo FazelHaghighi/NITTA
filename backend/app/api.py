@@ -552,3 +552,22 @@ def updateRequest(request: RequestUpdate):
         return {"code": "-1"}
     
     return {"code": "1"}
+
+def getAllTas():
+    stm = select(Student.name.label('taName'), Teacher.name.label('teacherName'), Lesson.name.label('lessonName'),
+                    func.array_agg(case()).label('comments'),
+                    TA.num_vote.label('voteNumbers'), func.avg(TAComments.rate),  Department.name.label('teacherDep')).\
+                    join(Student, Student.id == TA.student_id).\
+                    join(Teacher, Teacher.id == TA.teacher_id).join(Lesson, Lesson.id == TA.lesson_id).\
+                    join(Department, Department.id == Teacher.dep_id).\
+                    join(TAComments, TAComments.ta_id == TA.student_id).\
+                    group_by(TA.num_vote, Student.name, Teacher.name, Lesson.name, Department.name)
+
+    try:
+        tas = session.execute(stm).mappings().all()
+        print(tas)
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
+    
+    return tas
