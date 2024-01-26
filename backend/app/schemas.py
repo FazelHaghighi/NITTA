@@ -166,11 +166,23 @@ class TACommentsBase(BaseModel):
     lesson_id: int
     rate: float
     comment: Json
+    vote: int
 
 class TACommentsCreate(TACommentsBase):
     pass
 
 class TAComments(TACommentsBase):
+    id: int
+
+class TACommentsVoteBase(BaseModel):
+    commenter_id: int
+    voter_id: int
+    ta_id: int
+
+class TACommentsVoteCreate(TACommentsVoteBase):
+    pass
+
+class TACommentsVote(TACommentsVoteBase):
     id: int
 
     class Config:
