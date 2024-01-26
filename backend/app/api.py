@@ -2,7 +2,8 @@ from sqlalchemy.orm import Session, aliased
 from sqlalchemy.sql import func
 from argon2 import PasswordHasher
 import argon2
-from models import Student, Teacher, Department, Lesson, TeacherLesson, LessonPrequisite, Request, RequestPreq, TA, TAComments
+from models import (Student, Teacher, Department, Lesson, TeacherLesson,
+    LessonPrequisite, Request, RequestPreq, TA, TAComments, TACommentsVote)
 from database import engine
 from sqlalchemy import select, exc, insert, case
 import jwt
@@ -30,6 +31,15 @@ class RequestUpdate(BaseModel):
     teacher_username: str
     lessonName: str
     is_accepted: bool
+
+class Comment(BaseModel):
+    commenter_sn: str
+    ta_name: str
+    lesson_name: str
+    teacher_name: str
+    title: str
+    text: str
+    rate: float
 
 session = Session(engine)
 
@@ -554,14 +564,20 @@ def updateRequest(request: RequestUpdate):
     return {"code": "1"}
 
 def getAllTas():
+    commenter = aliased(Student)
     stm = select(Student.name.label('taName'), Teacher.name.label('teacherName'), Lesson.name.label('lessonName'),
-                    func.array_agg(case()).label('comments'),
-                    TA.num_vote.label('voteNumbers'), func.avg(TAComments.rate),  Department.name.label('teacherDep')).\
+                    func.array_agg(case(
+                        (TAComments.id != None,  func.jsonb_build_object('commenterName', commenter.name, 'comment', TAComments.comment, 'rate', TAComments.rate, 'votes', TAComments.vote)),
+                        else_=func.jsonb_build_object('nocomments', True)
+                    )).label('comments'),
+                    TA.num_vote.label('voteNumbers'),  Department.name.label('teacherDep')).\
                     join(Student, Student.id == TA.student_id).\
                     join(Teacher, Teacher.id == TA.teacher_id).join(Lesson, Lesson.id == TA.lesson_id).\
                     join(Department, Department.id == Teacher.dep_id).\
-                    join(TAComments, TAComments.ta_id == TA.student_id).\
+                    outerjoin(TAComments, TAComments.ta_id == TA.id).\
+                    outerjoin(commenter, commenter.id == TAComments.student_id).\
                     group_by(TA.num_vote, Student.name, Teacher.name, Lesson.name, Department.name)
+    
 
     try:
         tas = session.execute(stm).mappings().all()
@@ -571,3 +587,79 @@ def getAllTas():
         return {"code": "-1"}
     
     return tas
+
+def increaseVote(voter_sn, commenter_n, ta_n):
+    voter = aliased(Student)
+    ta = aliased(Student)
+    commenter = aliased(Student)
+    stm = select(TACommentsVote.id).join(voter, voter.id == TACommentsVote.voter_id).\
+            join(ta, ta.id == TACommentsVote.ta_id).join(commenter, TACommentsVote.commenter_id == commenter.id).\
+            where(voter.id == TACommentsVote.voter_id).where(commenter.name == commenter_n).\
+            where(voter.student_number == voter_sn).where(ta.name == ta_n)
+    
+    try:
+        has_voted_before = session.execute(stm).mappings().all()
+        if len(has_voted_before) > 0:
+            return {"code": "1"}
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
+    
+    stm1 = insert(TACommentsVote).values(
+        commenter_id=select(Student.id).where(Student.name == commenter_n).limit(1).scalar_subquery(),
+        voter_id=select(Student.id).where(Student.student_number == voter_sn).limit(1).scalar_subquery(),
+        ta_id=select(Student.id).where(Student.name == ta_n).limit(1).scalar_subquery()
+        )
+    
+    try:
+        session.execute(stm1)
+        session.commit()
+        return {"code": "0"}
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
+
+def submitComment(comment: Comment):
+    commenter = aliased(Student)
+
+    try:
+        stm = select(Student.student_number).\
+        where(Student.name == comment.ta_name).limit(1)
+        ta_sn = session.scalars(stm).first()
+        session.commit()
+
+        if ta_sn == comment.commenter_sn:
+            return {"code": "2"}
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
+    
+    try:
+        stm = select(TAComments.id).join(TA, TA.id == TAComments.ta_id).\
+            where(TA.lesson_id == select(Lesson.id).where(Lesson.name == comment.lesson_name).limit(1).scalar_subquery()).\
+            where(TA.student_id == select(Student.id).where(Student.name == comment.ta_name).limit(1).scalar_subquery()).\
+            where(TA.teacher_id == select(Teacher.id).where(Teacher.name == comment.teacher_name).limit(1).scalar_subquery()).\
+            where(TAComments.student_id == select(commenter.id).where(commenter.student_number == comment.commenter_sn))
+        
+        res = session.execute(stm).mappings().all()
+        print(res)
+        if len(res) > 0:
+            return {"code": "1"}
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
+    
+    try:
+        stm = insert(TAComments).values(
+            ta_id=select(TA.id).where(TA.student_id == select(Student.id).where(Student.name == comment.ta_name).limit(1).scalar_subquery()).limit(1).scalar_subquery(),
+            student_id=select(commenter.id).where(commenter.student_number == comment.commenter_sn),
+            rate=comment.rate,
+            comment=func.jsonb_build_object('title', comment.title, 'text', comment.text)
+        )
+        session.execute(stm)
+        session.commit()
+
+        return {"code": "0"}
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
