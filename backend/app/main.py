@@ -1,5 +1,6 @@
-from typing import List
-from fastapi import FastAPI, Depends, HTTPException
+from typing import List, Annotated
+from typing_extensions import TypedDict
+from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from crud import (
     create_ta_rating, create_request, create_teacher, create_student,
@@ -14,12 +15,20 @@ from crud import (
 from schemas import (
     Student, TARatingCreate, TARating, Request, RequestCreate,
     Teacher, TeacherCreate, StudentCreate, Lesson, LessonCreate,
-    Department, DepartmentCreate, TACreate, TA
+    Department, DepartmentCreate, TACreate, TA, StudentBase, LessonBase, TABase
 )
 from database import SessionLocal, engine
 from fastapi.middleware.cors import CORSMiddleware
-from api import login, authorize, getUserById
+from api import (login, authorize, getUserById, register, getDepartmentsByName,
+    getTeachersByDepartment,getAllLessonsByTeacher, createRequest,
+    isStudent, getTeachersStudentRequested, 
+    getLessonsStudentRequested, getLessonsByTeacher, getStudentsRequestingFor, updateRequest, getAllTas
+)
 from pydantic import BaseModel
+
+class PartialTeacher(BaseModel):
+    name: str
+    mail: str
 
 class User(BaseModel):
     username: str
@@ -28,6 +37,64 @@ class User(BaseModel):
 class Tokens(BaseModel):
     access_token: str
     refresh_token: str
+
+class DepartmentNames(BaseModel):
+    departments: List[str]
+
+class LessonWithTeacher(BaseModel):
+    lesson_name: str
+    teacher_name: str
+    credit_points: int
+    preqs: List[str]
+    teacher_email: str
+
+class StudentCreateRequest(BaseModel):
+    student_number: str
+    teacher_email: str
+    lesson_name: str
+    preq_grades: List[TypedDict('PreqGrade', {'preqName': str, 'grade': int})]
+    is_completed: bool
+    additional_note: str
+
+class StudentGetRequest(BaseModel):
+    teacher_email: str
+    lesson_name: str
+    teacher_name: str
+    is_completed: bool
+    is_accepted: bool
+
+class StudentsRequestingForTeacher(BaseModel):
+    lessonName: str
+    studentEmail: str
+    studentName: str
+    studentId: str
+    lessonUnit: int
+    additionalNote: str | None
+    isCompleted: bool
+    isAccepted: bool
+    studentPreqsGrades: List[TypedDict('StudentPreqsGrades', {'lessonName': str, 'grade': int})]
+
+class RequestUpdate(BaseModel):
+    student_number: str
+    teacher_username: str
+    lessonName: str
+    is_accepted: bool
+
+class Comment(BaseModel):
+    title: str
+    text: str
+
+class TAModel(BaseModel):
+    taName: str
+    teacherName: str
+    teacherDep: str
+    lessonName: str
+    comments: List[Comment] | None
+    voteNumbers: int | None
+    rate: float | None
+
+class Code(BaseModel):
+    code: str
 
 app = FastAPI()
 
@@ -61,9 +128,57 @@ async def authentication(user: User):
 async def authorization(tokens: Tokens):
     return authorize(tokens)
 
+@app.post("/isStudent")
+async def authorization(tokens: Tokens):
+    return isStudent(tokens)
+
+@app.post("/register")
+async def registeration(student: StudentBase):
+    return register(student)
+
 @app.post("/getUserById")
 async def get_user_by_id(tokens: Tokens):
     return getUserById(tokens)
+
+@app.get("/getDepartments", response_model=DepartmentNames)
+async def get_departments_by_name():
+    return getDepartmentsByName()
+
+@app.get("/getTeachersByDepartment", response_model=List[PartialTeacher])
+async def get_teachers_by_department(dep_name: Annotated[str, Query(max_length=50)]):
+    return getTeachersByDepartment(dep_name)
+
+@app.get("/getAllLessonsAndTeacherByDepartment", response_model=List[LessonWithTeacher])
+async def get_all_lessons(dep_name: Annotated[str | None, Query(max_length=50)] = None):
+    return getAllLessonsByTeacher(dep_name)
+
+@app.get("/getTeachersStudentRequestedFor", response_model=List[PartialTeacher])
+async def get_teachers_student_requested(student_number: Annotated[str, Query(max_length=(11 | 12))]):
+    return getTeachersStudentRequested(student_number)
+
+@app.get("/getLessonsStudentRequestedFor", response_model=List[StudentGetRequest])
+async def get_lessons_student_requested(student_number: Annotated[str, Query(max_length=(11 | 12))]):
+    return getLessonsStudentRequested(student_number)
+
+@app.get("/getLessonsByTeacher", response_model=List[LessonBase])
+async def get_lessons_by_teacher(username: Annotated[str, Query(max_length=50)]):
+    return getLessonsByTeacher(username)
+
+@app.get("/getStudentsRequestingForTeacher", response_model=List[StudentsRequestingForTeacher] | Code)
+async def get_students_requesting(username: Annotated[str, Query(max_length=50)]):
+    return getStudentsRequestingFor(username)
+
+@app.get("/getTAs", response_model=List[TAModel] | Code)
+async def get_all_tas():
+    return getAllTas()
+
+@app.post("/updateRequest", response_model=Code)
+async def update_request(request: RequestUpdate):
+    return updateRequest(request)
+
+@app.post("/createRequest", response_model=Code)
+async def create_request(req: StudentCreateRequest):
+    return createRequest(req)
 
 @app.post("/tas/{ta_id}/ratings/", response_model=TARating)
 async def submit_ta_rating(ta_id: int, rating: TARatingCreate, db: Session = Depends(get_db)):
