@@ -14,6 +14,13 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 
+function toArabicNumber(str: string) {
+  const id = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return str.replace(/[0-9]/g, function (w) {
+    return id[+w];
+  });
+}
+
 function DeesktopHeader({
   user,
   theme,
@@ -123,7 +130,7 @@ function DeesktopHeader({
             <Skeleton className="w-[50px] h-[20px] rounded-full" />
           ) : 'id' in user ? (
             <Text className="w-max" size="2" align="center">
-              {user.id}
+              {toArabicNumber(user.id)}
             </Text>
           ) : (
             <Text size="2">{user.depName}</Text>

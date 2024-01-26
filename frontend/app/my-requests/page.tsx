@@ -18,17 +18,9 @@ import {
   Kbd,
   Skeleton,
 } from '@radix-ui/themes';
-import Link from 'next/link';
 import { PartialTeacher } from '@/types/globalTypes';
 import { ArrowTopRightIcon } from '@radix-ui/react-icons';
 const Header = dynamic(() => import('./header'));
-
-function toArabicNumber(str: string) {
-  const id = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return str.replace(/[0-9]/g, function (w) {
-    return id[+w];
-  });
-}
 
 export async function getUser() {
   const access_token = getCookie('access_token');
@@ -284,7 +276,7 @@ export default function MyRequests() {
                                   </Flex>
                                 </Flex>
                               </Flex>
-                              {!lesson.is_accepted && (
+                              {!lesson.is_completed && (
                                 <Button
                                   className="hover:bg-transparent hover:cursor-pointer hover:underline hover:underline-offset-4 hover:decoration-[var(--red-5)]"
                                   variant="ghost"
