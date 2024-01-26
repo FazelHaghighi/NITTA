@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Numeric, TEXT, ForeignKey, Boolean, TIMESTAMP, ARRAY, JSON
+from sqlalchemy import Column, Integer, String, Numeric, TEXT, ForeignKey, Boolean, TIMESTAMP, ARRAY
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -25,10 +26,18 @@ class TA(Base):
 class TAComments(Base):
     __tablename__ = "tas_comments"
     id = Column(Integer, primary_key=True, index=True)
-    ta_id = Column(Integer, ForeignKey("students.id"))
+    ta_id = Column(Integer, ForeignKey("tas.id"))
     student_id = Column(Integer, ForeignKey("students.id"))
-    comment = Column(JSON)
+    comment = Column(JSONB)
     rate = Column(Numeric)
+    vote = Column(Integer)
+
+class TACommentsVote(Base):
+    __tablename__ = "tas_comments_vote"
+    id = Column(Integer, primary_key=True, index=True)
+    commenter_id = Column(Integer, ForeignKey("students.id"))
+    voter_id = Column(Integer, ForeignKey("students.id"))
+    ta_id = Column(Integer, ForeignKey("students.id"))
 
 
 class Department(Base):
