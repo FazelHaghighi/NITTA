@@ -353,3 +353,202 @@ def getAllLessonsByTeacher(dep_name: str):
         return {"code": "-1"}
     
     return allLessons
+
+def createRequest(req: StudentCreateRequest):
+    if_existed = select(Request).\
+        where(
+            Request.student_id == select(Student.id).where(Student.student_number == req.student_number).limit(1),
+            Request.teacher_id == select(Teacher.id).where(Teacher.mail == req.teacher_email).limit(1),
+            Request.lesson_id == select(Lesson.id).where(Lesson.name == req.lesson_name).limit(1)
+        )
+    
+    try:
+        session.close_all()
+        session.begin()
+        result = session.execute(if_existed).mappings().all()
+        if len(result) > 0:
+            return {"code": "1"}
+    except exc.SQLAlchemyError:
+        session.commit()
+        print(exc.SQLAlchemyError._message())
+        return {"code": "-1"}
+        
+
+
+    stm = insert(Request).\
+        values(
+            student_id=select(Student.id).where(Student.student_number == req.student_number),
+            teacher_id=select(Teacher.id).where(Teacher.mail == req.teacher_email),
+            lesson_id=select(Lesson.id).where(Lesson.name == req.lesson_name),
+            is_completed=req.is_completed,
+            additional_note=req.additional_note
+            )
+    
+    stm2 = []
+    for preq in req.preq_grades:
+        stm2.append( insert(RequestPreq).\
+            values(
+                request_id=select(Request.id).where(Request.student_id == select(Student.id).where(Student.student_number == req.student_number)).order_by(Request.created_at.desc()).limit(1),
+                preq_id=select(Lesson.id).where(Lesson.name == preq['preqName']),
+                grade=preq['grade']
+            ))
+
+    try:
+        session.close_all()
+        session.begin()
+        session.execute(stm)
+        for stm in stm2:
+            session.execute(stm)
+        session.commit()
+    except exc.SQLAlchemyError:
+        print(exc.SQLAlchemyError._message())
+        return {"code": "-1"}
+    
+    return {"code": "0"}
+
+def getTeachersStudentRequested(student_number):
+    stm = select(Teacher).join(Request, Request.teacher_id == Teacher.id).\
+        where(Request.student_id == select(Student.id).where(Student.student_number == student_number).limit(1)).\
+        group_by(Teacher)
+    
+    try:
+        session.close_all()
+        session.begin()
+        teachers = session.scalars(stm).all()
+    except exc.SQLAlchemyError:
+        print(exc.SQLAlchemyError)
+        return {"code": "-1"}
+    
+    return teachers
+
+def getLessonsStudentRequested(student_number: str):
+    stm = select(Request.is_accepted.label('is_accepted'),
+                    Request.is_completed.label('is_completed'),
+                    Teacher.mail.label('teacher_email'), 
+                    Teacher.name.label('teacher_name'),
+                    Lesson.name.label('lesson_name')).\
+            join(Teacher, Teacher.id == Request.teacher_id).\
+            join(Lesson, Lesson.id == Request.lesson_id).\
+            where(Request.student_id == select(Student.id).where(Student.student_number == student_number).limit(1))
+    try:
+        session.close_all()
+        session.begin()
+        lessons = session.execute(stm).mappings().all()
+    except exc.SQLAlchemyError:
+        print(exc.SQLAlchemyError)
+        return {"code": "-1"}
+    
+    return lessons
+
+def getLessonsByTeacher(teacher_username):
+    stm = select(Lesson.name, Lesson.credit_points).\
+        join(TeacherLesson, TeacherLesson.lesson_id == Lesson.id).\
+        join(Teacher, Teacher.id == TeacherLesson.teacher_id).\
+        where(Teacher.username == teacher_username)
+    
+    try:
+        session.close_all()
+        session.begin()
+        lessons = session.execute(stm).mappings().all()
+    except exc.SQLAlchemyError:
+        print(exc.SQLAlchemyError)
+        return {"code": "-1"}
+    
+    return lessons
+
+def getStudentsRequestingFor(teacher_username):
+    PreqLesson = aliased(Lesson)
+
+    stm = select(Lesson.name.label('lessonName'),Student.name.label('studentName'),Student.email.label('studentEmail'),
+                 Student.student_number.label('studentId'),
+                 Lesson.credit_points.label('lessonUnit'),
+                 Request.additional_note.label('additionalNote'),
+                 Request.is_completed.label('isCompleted'),
+                 Request.is_accepted.label('isAccepted'),
+                func.array_agg(func.json_build_object(
+                'lessonName', PreqLesson.name,
+                'grade', RequestPreq.grade
+            )).label('studentPreqsGrades')).\
+            join(Request, Request.lesson_id == Lesson.id).\
+            join(Student, Student.id == Request.student_id).\
+            join(RequestPreq, Request.id == RequestPreq.request_id).\
+            join(PreqLesson, PreqLesson.id == RequestPreq.preq_id).\
+            where(Request.teacher_id == select(Teacher.id).where(Teacher.username == teacher_username).limit(1)).\
+            group_by(Lesson.name,Student.name,Student.email,Lesson.credit_points,
+                     Student.student_number, Request.additional_note, Request.is_completed, Request.is_accepted)
+    
+    stm2 = select(Lesson.name.label('lessonName'),Student.name.label('studentName'),Student.email.label('studentEmail'),
+                    Student.student_number.label('studentId'),
+                    Request.additional_note.label('additionalNote'),
+                    Request.is_completed.label('isCompleted'),
+                    Request.is_accepted.label('isAccepted'),
+                    Lesson.credit_points.label('lessonUnit')).\
+                join(Request, Request.lesson_id == Lesson.id).\
+                join(Student, Student.id == Request.student_id)
+    
+    stm3 = select(Lesson.name.label('lessonName'),Student.name.label('studentName'),Student.email.label('studentEmail'),
+                    Student.student_number.label('studentId'),
+                    Request.additional_note.label('additionalNote'),
+                    Request.is_completed.label('isCompleted'),
+                    Request.is_accepted.label('isAccepted'),
+                    Lesson.credit_points.label('lessonUnit')).\
+                join(Request, Request.lesson_id == Lesson.id).\
+                join(Student, Student.id == Request.student_id).\
+                join(RequestPreq, Request.id == RequestPreq.request_id)
+    
+    final_stm = stm2.except_(stm3)
+    
+
+    try:
+        session.close_all()
+        session.begin()
+        requests = session.execute(stm).mappings().all()
+        remainingRequests = session.execute(final_stm).mappings().all()
+
+        allRequests = []
+        for request in requests:
+            allRequests.append(request)
+
+        for request in remainingRequests:
+            allRequests.append({ **request, "studentPreqsGrades": []})
+        
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
+    
+    return allRequests
+
+def updateRequest(request: RequestUpdate):
+    student_id = select(Student.id).filter(Student.student_number == request.student_number).limit(1).scalar_subquery()
+    teacher_id =  select(Teacher.id).where(Teacher.username == request.teacher_username).limit(1).scalar_subquery()
+    lesson_id = select(Lesson.id).where(Lesson.name == request.lessonName).limit(1).scalar_subquery()
+
+    stm = select(Request).\
+            where(Request.student_id == student_id).\
+            where(Request.teacher_id == teacher_id).\
+            where(Request.lesson_id == lesson_id)
+
+    try:
+        res = session.scalars(stm).one()
+
+        if request.is_accepted:
+            session.execute(
+                insert(TA).\
+                    values(
+                        student_id=res.student_id,
+                        teacher_id=res.teacher_id,
+                        lesson_id=res.lesson_id,
+                        rate=None,
+                        comment=None,
+                        num_vote=None
+                        )
+            )
+
+        res.is_accepted = request.is_accepted
+        res.is_completed = True
+        session.commit()
+    except exc.SQLAlchemyError as e:
+        print(e)
+        return {"code": "-1"}
+    
+    return {"code": "1"}
