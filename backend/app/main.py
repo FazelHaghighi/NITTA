@@ -15,14 +15,15 @@ from crud import (
 from schemas import (
     Student, TARatingCreate, TARating, Request, RequestCreate,
     Teacher, TeacherCreate, StudentCreate, Lesson, LessonCreate,
-    Department, DepartmentCreate, TACreate, TA, StudentBase, LessonBase, TABase
+    Department, DepartmentCreate, TACreate, TA, StudentBase, LessonBase
 )
 from database import SessionLocal, engine
 from fastapi.middleware.cors import CORSMiddleware
 from api import (login, authorize, getUserById, register, getDepartmentsByName,
     getTeachersByDepartment,getAllLessonsByTeacher, createRequest,
     isStudent, getTeachersStudentRequested, 
-    getLessonsStudentRequested, getLessonsByTeacher, getStudentsRequestingFor, updateRequest, getAllTas
+    getLessonsStudentRequested, getLessonsByTeacher, 
+    getStudentsRequestingFor, updateRequest, getAllTas, increaseVote, submitComment
 )
 from pydantic import BaseModel
 
@@ -80,18 +81,28 @@ class RequestUpdate(BaseModel):
     lessonName: str
     is_accepted: bool
 
-class Comment(BaseModel):
-    title: str
-    text: str
-
 class TAModel(BaseModel):
     taName: str
     teacherName: str
     teacherDep: str
     lessonName: str
-    comments: List[Comment] | None
+    comments: List[TypedDict('Comments', {'comment': TypedDict('Comment', {'title': str, 'text': str}), 'rate': float, 'commenterName': str, 'votes': int})
+                    | TypedDict('Comments', {'nocomments': bool})]
     voteNumbers: int | None
-    rate: float | None
+
+class IncreaseVote(BaseModel):
+    voter_student_number: str
+    commenter_name: str
+    ta_name: str
+
+class Comment(BaseModel):
+    commenter_sn: str
+    ta_name: str
+    lesson_name: str
+    teacher_name: str
+    title: str
+    text: str
+    rate: float
 
 class Code(BaseModel):
     code: str
@@ -171,6 +182,14 @@ async def get_students_requesting(username: Annotated[str, Query(max_length=50)]
 @app.get("/getTAs", response_model=List[TAModel] | Code)
 async def get_all_tas():
     return getAllTas()
+
+@app.post("/increaseVote", response_model=Code)
+async def increase_vote(data: IncreaseVote):
+    return increaseVote(data.voter_student_number, data.commenter_name, data.ta_name)
+
+@app.post("/submitComment", response_model=Code)
+async def submit_comment(comment: Comment):
+    return submitComment(comment)
 
 @app.post("/updateRequest", response_model=Code)
 async def update_request(request: RequestUpdate):
