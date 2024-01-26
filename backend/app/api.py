@@ -277,3 +277,79 @@ def getUserById(tokens):
     if not 'code' in student:
         return student
     return getTeacherById(tokens)
+
+def getDepartmentsByName():
+    stm = select(Department.name)
+    try:
+        session.close_all()
+        session.begin()
+        departments = session.scalars(stm).all()
+    except:
+        return {"code": "-1"}
+    
+    return { 
+        "departments": departments
+    }
+
+def getTeachersByDepartment(dep_name: str):
+    stm = select(Teacher).join(Department, Department.id == Teacher.dep_id).where(Department.name == dep_name)
+    try:
+        session.close_all()
+        session.begin()
+        teachers = session.scalars(stm).all()
+    except exc.SQLAlchemyError:
+        print(exc.SQLAlchemyError)
+        return {"code": "-1"}
+    
+    return teachers
+
+def getAllLessonsByTeacher(dep_name: str):
+    lesson2 = aliased(Lesson)
+    stm = select(Lesson.name.label('lesson_name'),
+                Teacher.name.label('teacher_name'),
+                Teacher.mail.label('teacher_email'),
+                Lesson.credit_points,
+                func.array_agg(lesson2.name).label('preqs')).\
+        join(TeacherLesson, TeacherLesson.lesson_id == Lesson.id).\
+        join(Teacher, Teacher.id == TeacherLesson.teacher_id).\
+        join(LessonPrequisite, LessonPrequisite.lesson_id == Lesson.id).\
+        join(lesson2, lesson2.id == LessonPrequisite.preq_id).\
+        where(Teacher.dep_id == select(Department.id).where(Department.name == dep_name)).\
+        group_by(Lesson.id, Teacher.id)
+    
+    stm2 = select(Lesson.name.label('lesson_name'),
+              Teacher.name.label('teacher_name'),
+              Teacher.mail.label('teacher_email'),
+              Lesson.credit_points,
+             ).join(TeacherLesson, TeacherLesson.lesson_id == Lesson.id).\
+             join(Teacher, Teacher.id == TeacherLesson.teacher_id).\
+             where(Teacher.dep_id == select(Department.id).where(Department.name == dep_name))
+
+    stm3 = select(Lesson.name.label('lesson_name'),
+              Teacher.name.label('teacher_name'),
+              Teacher.mail.label('teacher_email'),
+              Lesson.credit_points,).\
+        join(LessonPrequisite, Lesson.id == LessonPrequisite.lesson_id).\
+        join(TeacherLesson, TeacherLesson.lesson_id == Lesson.id).\
+        join(Teacher, Teacher.id == TeacherLesson.teacher_id).\
+        where(Teacher.dep_id == select(Department.id).where(Department.name == dep_name))
+
+    final_stm = stm2.except_(stm3) 
+
+    try:
+        session.close_all()
+        session.begin()
+        lessons = session.execute(stm).mappings().all()
+        remainingLessons = session.execute(final_stm).mappings().all()
+
+        allLessons = []
+        for lesson in lessons:
+            allLessons.append(lesson)
+
+        for lesson in remainingLessons:
+            allLessons.append({ **lesson, "preqs": [] })
+        
+    except:
+        return {"code": "-1"}
+    
+    return allLessons
