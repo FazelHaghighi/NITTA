@@ -14,7 +14,12 @@ import {
   HamburgerMenuIcon,
   ArrowTopRightIcon,
 } from '@radix-ui/react-icons';
-import { Student, Teacher, ThemeType } from '@/types/globalTypes';
+import {
+  PartialStudent,
+  Student,
+  Teacher,
+  ThemeType,
+} from '@/types/globalTypes';
 import { deleteCookie } from 'cookies-next';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,6 +33,7 @@ import {
 } from '@/components/ui/sheet';
 import { useToast } from '@/components/ui/use-toast';
 import { useBoundStore } from '@/hooks/useBoundStore';
+import { LessonAndTeacher } from './student-dashboard.';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
@@ -76,14 +82,16 @@ function DeesktopHeader({
         {'id' in user && (
           <>
             <Button
+              size="1"
               variant="ghost"
-              onClick={() => {
-                router.push('/dashboard');
+              style={{
+                backgroundColor: theme === 'dark' ? 'white' : 'black',
+                color: theme === 'dark' ? 'black' : 'white',
+                fontSize: 'var(--font-size-2)',
               }}
-              color="gray"
-              className={`${
-                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
-              } hover:cursor-pointer`}
+              onClick={() => {
+                router.push('/rate');
+              }}
             >
               انتخاب درس
             </Button>
@@ -119,13 +127,14 @@ function DeesktopHeader({
               درخواست های من
             </Button>
             <Button
-              size="1"
-              variant="ghost"
-              style={{
-                backgroundColor: theme === 'dark' ? 'white' : 'black',
-                color: theme === 'dark' ? 'black' : 'white',
-                fontSize: 'var(--font-size-2)',
+              onClick={() => {
+                router.push('/rate');
               }}
+              variant="ghost"
+              color="gray"
+              className={`${
+                theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
+              } hover:cursor-pointer`}
             >
               امتیاز
             </Button>
@@ -196,27 +205,27 @@ function DeesktopHeader({
 }
 
 function MobileHeader({
-  deps,
-  setFirstDep,
-  setCurrDep,
-  setDeps,
-  firstDep,
-  currDep,
+  currLesson,
+  lessons,
+  setCurrLesson,
+  setLessons,
+  students,
   router,
   theme,
   switchTheme,
+  user,
 }: {
-  deps: { name: string; selected: boolean }[];
-  setFirstDep: React.Dispatch<React.SetStateAction<boolean>>;
-  setCurrDep: (currDep: string) => void;
-  setDeps: React.Dispatch<
-    React.SetStateAction<{ name: string; selected: boolean }[]>
+  students: PartialStudent[];
+  currLesson: Lesson;
+  setCurrLesson: (currLesson: Lesson) => void;
+  setLessons: React.Dispatch<
+    React.SetStateAction<{ lesson: Lesson; selected: boolean }[]>
   >;
-  firstDep: boolean;
-  currDep: string;
+  lessons: { lesson: Lesson; selected: boolean }[];
   router: AppRouterInstance;
   theme: ThemeType;
   switchTheme: () => void;
+  user: Teacher;
 }) {
   return (
     <Box
@@ -226,87 +235,105 @@ function MobileHeader({
       }}
     >
       <Flex className="w-full border-b h-[48px] px-4 sticky" justify="between">
-        <Sheet>
-          <SheetTrigger>
-            <IconButton size="2" variant="ghost" color="gray">
-              <HamburgerMenuIcon width={16} height={16} />
-            </IconButton>
-          </SheetTrigger>
-          <SheetContent className="w-[200px]">
-            <SheetHeader>
-              <SheetTitle>
-                <Heading as="h5" size="3">
-                  گروه های آموزشی
-                </Heading>
-              </SheetTitle>
-            </SheetHeader>
-            <Flex
-              className="w-full rounded-md sticky top-[60px]"
-              style={{
-                height: 'calc(100vh - 60px)',
-              }}
-            >
-              <ScrollArea className="w-full">
-                <Flex
-                  direction="column"
-                  className="w-full pt-4"
-                  align="start"
-                  gap="4"
-                >
-                  {deps.length === 0 ? (
-                    new Array(20)
-                      .fill(0)
-                      .map((_, index) => (
-                        <Skeleton
-                          key={index}
-                          className="w-full h-8 mb-4 rounded-md"
-                        />
-                      ))
-                  ) : (
-                    <Flex
-                      dir="rtl"
-                      direction="column"
-                      className="w-full"
-                      gap="1"
-                    >
-                      {deps.map((dep, index) => (
-                        <Box
-                          onClick={() => {
-                            if (firstDep) {
-                              setFirstDep(false);
+        <Flex>
+          <Sheet>
+            <SheetTrigger>
+              <IconButton size="2" variant="ghost" color="gray">
+                <HamburgerMenuIcon width={16} height={16} />
+              </IconButton>
+            </SheetTrigger>
+            <SheetContent className="w-[200px]">
+              <SheetHeader>
+                <SheetTitle>
+                  <Heading as="h5" size="3">
+                    دروس
+                  </Heading>
+                </SheetTitle>
+              </SheetHeader>
+              <Flex
+                className="w-full rounded-md sticky top-[60px]"
+                style={{
+                  height: 'calc(100vh - 60px)',
+                }}
+              >
+                <ScrollArea className="w-full">
+                  <Flex
+                    direction="column"
+                    className="w-full pt-4"
+                    align="start"
+                    gap="4"
+                  >
+                    {students.length === 0 && currLesson.name !== '' ? (
+                      new Array(20)
+                        .fill(0)
+                        .map((_, index) => (
+                          <Skeleton
+                            key={index}
+                            className="w-full h-8 mb-4 rounded-md"
+                          />
+                        ))
+                    ) : (
+                      <Flex
+                        dir="rtl"
+                        direction="column"
+                        className="w-full"
+                        gap="1"
+                      >
+                        {lessons.map((lesson, index) => (
+                          <Box
+                            onClick={() => {
+                              if (lesson.selected) {
+                                return;
+                              }
+                              setLessons(
+                                lessons.map((l) =>
+                                  l.lesson.name === lesson.lesson.name
+                                    ? { ...l, selected: true }
+                                    : { ...l, selected: false }
+                                )
+                              );
+                              setCurrLesson(lesson.lesson);
+                            }}
+                            data-state={
+                              (lesson.selected && 'selected') ||
+                              (currLesson === lesson.lesson && 'selected')
                             }
-                            if (dep.selected) {
-                              return;
-                            }
-                            setDeps(
-                              deps.map((d) =>
-                                d.name === dep.name
-                                  ? { ...d, selected: true }
-                                  : { ...d, selected: false }
-                              )
-                            );
-                            setCurrDep(dep.name);
-                          }}
-                          data-state={
-                            (dep.selected && 'selected') ||
-                            (currDep === dep.name && 'selected') ||
-                            (firstDep && index === 0 && 'selected')
-                          }
-                          className="rounded-full py-[6px] px-4 transition-colors hover:cursor-pointer hover:bg-[var(--red-5)] data-[state=selected]:bg-[var(--red-5)]"
-                          key={index}
-                        >
-                          <Text size="3" weight="regular">
-                            {dep.name}
-                          </Text>
-                        </Box>
-                      ))}
-                    </Flex>
-                  )}
-                </Flex>
-              </ScrollArea>
+                            className="rounded-full py-[6px] px-4 transition-colors hover:cursor-pointer hover:bg-[var(--red-5)] data-[state=selected]:bg-[var(--red-5)]"
+                            key={index}
+                          >
+                            <Text size="3" weight="regular">
+                              {lesson.lesson.name}
+                            </Text>
+                          </Box>
+                        ))}
+                      </Flex>
+                    )}
+                  </Flex>
+                </ScrollArea>
+              </Flex>
+            </SheetContent>
+          </Sheet>
+          <Flex align="center" gap="2" mr="4">
+            <Flex direction="column" align="center" gap="1">
+              {('id' in user && user.id === '') ||
+              ('depName' in user && user.name === '') ? (
+                <Skeleton className="w-[150px] h-[20px] rounded-full" />
+              ) : (
+                <Text size="3">{user.name}</Text>
+              )}
+              {('id' in user && user.id === '') ||
+              ('depName' in user && user.name === '') ? (
+                <Skeleton className="w-[50px] h-[20px] rounded-full" />
+              ) : 'id' in user ? (
+                <Text className="w-max" size="2" align="center">
+                  {toArabicNumber('0')}
+                </Text>
+              ) : (
+                <Text size="2">{user.depName}</Text>
+              )}
             </Flex>
-          </SheetContent>
-        </Sheet>
+          </Flex>
+        </Flex>
         <Flex className="pt-1 gap-[18px]" align="center" dir="ltr">
           <Button
             color="gray"
@@ -324,39 +351,6 @@ function MobileHeader({
             ) : (
               <SunIcon width={16} height={16} />
             )}
-          </Button>
-          <Button
-            size="1"
-            variant="ghost"
-            color="gray"
-            className={`${
-              theme === 'dark' ? 'hover:text-white' : 'hover:text-black'
-            } hover:cursor-pointer`}
-            onClick={() => {
-              router.push('/dashboard');
-            }}
-          >
-            انتخاب درس
-          </Button>
-          <Button
-            size="1"
-            variant="ghost"
-            color="gray"
-            onClick={() => {
-              router.push('/my-requests');
-            }}
-          >
-            درخواست های من
-          </Button>
-          <Button
-            variant="ghost"
-            style={{
-              backgroundColor: theme === 'dark' ? 'white' : 'black',
-              color: theme === 'dark' ? 'black' : 'white',
-              fontSize: 'var(--font-size-2)',
-            }}
-          >
-            امتیاز
           </Button>
           <Button
             onClick={() => {
@@ -379,28 +373,43 @@ function MobileHeader({
   );
 }
 
+type Lesson = {
+  name: string;
+  units: string;
+};
+
+type Request = {
+  lessonName: string;
+  studentName: string;
+  studentEmail: string;
+  studentId: string;
+  lessonUnit: number;
+  additionalNote: string;
+  isCompleted: boolean;
+  isAccepted: boolean;
+  studentPreqsGrades: { lessonName: string; grade: number }[];
+};
+
 export default function Header({
   user,
   theme,
   switchTheme,
-  deps,
-  setFirstDep,
-  setCurrDep,
-  setDeps,
-  firstDep,
-  currDep,
+  currLesson,
+  setCurrLesson,
+  setLessons,
+  lessons,
+  students,
 }: {
-  user: Student | Teacher;
+  user: Teacher;
   theme: ThemeType;
   switchTheme: () => void;
-  deps: { name: string; selected: boolean }[];
-  setFirstDep: React.Dispatch<React.SetStateAction<boolean>>;
-  setCurrDep: (currDep: string) => void;
-  setDeps: React.Dispatch<
-    React.SetStateAction<{ name: string; selected: boolean }[]>
+  currLesson: Lesson;
+  setCurrLesson: (currLesson: Lesson) => void;
+  setLessons: React.Dispatch<
+    React.SetStateAction<{ lesson: Lesson; selected: boolean }[]>
   >;
-  firstDep: boolean;
-  currDep: string;
+  lessons: { lesson: Lesson; selected: boolean }[];
+  students: PartialStudent[];
 }) {
   const router = useRouter();
 
@@ -419,15 +428,15 @@ export default function Header({
         <DeesktopHeader user={user} theme={theme} switchTheme={switchTheme} />
       </Box>
       <MobileHeader
-        currDep={currDep}
-        deps={deps}
-        firstDep={firstDep}
+        user={user}
+        students={students}
         router={router}
-        setCurrDep={setCurrDep}
-        setDeps={setDeps}
-        setFirstDep={setFirstDep}
-        switchTheme={switchTheme}
         theme={theme}
+        switchTheme={switchTheme}
+        currLesson={currLesson}
+        lessons={lessons}
+        setCurrLesson={setCurrLesson}
+        setLessons={setLessons}
       />
     </>
   );

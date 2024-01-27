@@ -165,16 +165,24 @@ export default function Register() {
           </Button>
         </Flex>
         <Flex
-          className="max-w-screen-xl mx-auto"
+          className="w-full mx-auto"
           align="center"
           style={{
             height: 'calc(100vh - 60px)',
           }}
         >
-          <Container size="3">
+          <Container size="3" shrink="1" className="px-10">
             <Card>
               <Flex direction="column" p="6" align="center">
-                <Heading mt="6" size="7">
+                <Heading
+                  mt="6"
+                  size={{
+                    initial: '3',
+                    sm: '5',
+                    md: '7',
+                  }}
+                  align="center"
+                >
                   ثبت نام
                 </Heading>
                 <Flex
@@ -188,7 +196,7 @@ export default function Register() {
                       <Flex
                         direction="column"
                         gap="3"
-                        className="w-1/2 mx-auto"
+                        className="w-[90%] sm:w-1/2 mx-auto"
                       >
                         <FormField
                           control={form.control}
@@ -288,7 +296,7 @@ export default function Register() {
                         />
                       </Flex>
                       <Flex gap="3" className="mt-6" justify="center">
-                        <Link href="/" className="w-1/6">
+                        <Link href="/" className="w-1/3 sm:w-1/6">
                           <Button
                             variant="surface"
                             type="submit"
@@ -299,7 +307,7 @@ export default function Register() {
                         </Link>
                         <Button
                           variant="soft"
-                          className="w-1/6 py-2 px-4"
+                          className="w-1/3 sm:w-1/6 py-2 px-4"
                           type="submit"
                         >
                           ثبت نام

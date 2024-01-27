@@ -10,9 +10,6 @@ import { Box, Button, Card, Theme } from '@radix-ui/themes';
 import { Student, Teacher } from '@/types/globalTypes';
 import TeacherDashboard from './teacher-dashboard';
 import StudentDashboard from './student-dashboard.';
-import dynamic from 'next/dynamic';
-
-const Header = dynamic(() => import('./header'));
 
 export async function getUser() {
   const access_token = getCookie('access_token');
@@ -57,9 +54,6 @@ const Dashboard = () => {
   const updateStudent = useBoundStore((state) => state.updateStudent);
   const updateTeacher = useBoundStore((state) => state.updateTeacher);
 
-  const theme = useBoundStore((state) => state.theme);
-  const switchTheme = useBoundStore((state) => state.switchTheme);
-
   useEffect(() => {
     getUser().then((res) => {
       if ('teacher' in res) {
@@ -74,11 +68,6 @@ const Dashboard = () => {
 
   return (
     <>
-      <Header
-        user={isStudent === 1 ? teacher : student}
-        theme={theme}
-        switchTheme={switchTheme}
-      />
       {isStudent === 1 ? (
         <TeacherDashboard teacher={teacher} />
       ) : (

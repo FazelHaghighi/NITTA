@@ -33,6 +33,7 @@ export type RegisterErrorCode = {
 };
 
 export type TokensType = {
+  admin?: boolean;
   access_token: string;
   refresh_token: string;
 };

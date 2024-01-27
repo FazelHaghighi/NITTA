@@ -133,7 +133,7 @@ export default function RequestPage() {
   return (
     <>
       <Header theme={theme} switchTheme={switchTheme} user={user} />
-      <Flex className="w-[75%] mx-auto">
+      <Flex className="w-full md:w-[75%] mx-auto">
         {request.student.id === '' && (
           <>
             <Flex
@@ -143,7 +143,13 @@ export default function RequestPage() {
               justify="center"
               gap="5"
             >
-              <Heading color="red">
+              <Heading
+                color="red"
+                size={{
+                  initial: '4',
+                  sm: '6',
+                }}
+              >
                 ابتدا درسی را برای ثبت درخواست انتخاب کنید.
               </Heading>
               <Link href="/dashboard">
@@ -155,29 +161,48 @@ export default function RequestPage() {
         {request.student.id !== '' && (
           <>
             <Box
-              className="mx-auto w-[50%]"
+              className="mx-auto w-full sm:w-[50%] px-6 sm:px-0"
               style={{
                 height: 'calc(100vh - 60px)',
               }}
             >
               <Flex
-                className="max-w-screen-xl mx-auto"
+                className="w-full mx-auto"
                 align="center"
                 style={{
                   height: 'calc(100vh - 60px)',
                 }}
               >
-                <Container size="3">
+                <Container size="3" shrink="1">
                   <Card>
-                    <Flex direction="column" p="6" align="center">
-                      <Heading mt="6" size="6">
+                    <Flex direction="column" p="3" align="center">
+                      <Heading
+                        mt="6"
+                        size={{
+                          initial: '3',
+                          sm: '4',
+                          md: '6',
+                        }}
+                      >
                         ثبت درخواست برای درس {request.reqInfo.lessonName}
                       </Heading>
                       <Flex className="w-full" justify="center" gap="7" mt="2">
-                        <Heading size="3">
+                        <Heading
+                          size={{
+                            initial: '1',
+                            sm: '3',
+                          }}
+                        >
                           استاد {request.reqInfo.teacherName}
                         </Heading>
-                        <Text>{request.reqInfo.teacherEmail}</Text>
+                        <Text
+                          size={{
+                            initial: '1',
+                            sm: '3',
+                          }}
+                        >
+                          {request.reqInfo.teacherEmail}
+                        </Text>
                       </Flex>
                       <Flex
                         direction="column"
@@ -195,6 +220,7 @@ export default function RequestPage() {
                               (preq, index) => (
                                 <Flex direction="column" gap="2" key={index}>
                                   <Label
+                                    className="text-xs sm:text-base"
                                     style={{
                                       color:
                                         errors.includes(true) ||
@@ -259,7 +285,9 @@ export default function RequestPage() {
                               )
                             )}
                             <Flex direction="column" gap="2">
-                              <Label>توصیحات اضافه برای استاد:</Label>
+                              <Label className="text-xs sm:text-base">
+                                توصیحات اضافه برای استاد:
+                              </Label>
                               <TextArea
                                 onChange={(e) => {
                                   setAdditional_note(e.target.value);
@@ -271,7 +299,7 @@ export default function RequestPage() {
                           <Flex gap="3" className="mt-6" justify="center">
                             <Button
                               variant="surface"
-                              className="w-1/6 py-2 px-4"
+                              className="w-1/3 sm:w-1/6 py-2 px-4"
                               type="submit"
                             >
                               ثبت

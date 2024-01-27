@@ -186,10 +186,26 @@ export default function Rate() {
 
   return (
     <>
-      <Header user={student} switchTheme={switchTheme} theme={theme} />
+      <Header
+        currDep={currDep}
+        setCurrDep={setCurrDep}
+        deps={deps}
+        firstDep={firstDep}
+        setDeps={setDeps}
+        setFirstDep={setFirstDep}
+        user={student}
+        switchTheme={switchTheme}
+        theme={theme}
+      />
       <Theme accentColor="red">
         <Flex direction="row">
-          <Flex className="md:w-[27%] lg:w-[20%] xl:w-[12.5%]">
+          <Flex
+            className="md:w-[27%] lg:w-[20%] xl:w-[12.5%]"
+            display={{
+              initial: 'none',
+              sm: 'flex',
+            }}
+          >
             <Flex
               direction="column"
               className="w-full pt-4 px-5"
@@ -235,7 +251,7 @@ export default function Rate() {
             </Flex>
           </Flex>
           <Flex className="md:w-[43%] lg:w-[60%] xl:w-[75%]" justify="center">
-            <Flex direction="column" className="w-1/2 py-4">
+            <Flex direction="column" className="w-[90%] sm:w-1/2 py-4">
               <Box className="w-full py-10 space-y-3">
                 <Heading as="h1" size="7">
                   دستیاران آموزشی
@@ -270,11 +286,21 @@ export default function Rate() {
                             >
                               <Flex direction="column" gap="3">
                                 <Flex direction="row" gap="3">
-                                  <Heading weight="medium" as="h2" size="5">
+                                  <Heading
+                                    weight="medium"
+                                    as="h2"
+                                    size={{
+                                      initial: '3',
+                                      sm: '5',
+                                    }}
+                                  >
                                     {teacherAssistant.taName}
                                   </Heading>
                                   <Kbd
-                                    size="3"
+                                    size={{
+                                      initial: '1',
+                                      sm: '3',
+                                    }}
                                     style={{ fontFamily: '--font-vazirmatn' }}
                                   >
                                     {teacherAssistant.teacherName}
@@ -282,7 +308,12 @@ export default function Rate() {
                                 </Flex>
                                 <Flex>
                                   <Badge size="1" color="green">
-                                    <Text size="3">
+                                    <Text
+                                      size={{
+                                        initial: '1',
+                                        sm: '3',
+                                      }}
+                                    >
                                       {teacherAssistant.lessonName}
                                     </Text>
                                   </Badge>
@@ -292,7 +323,14 @@ export default function Rate() {
                                     'nocomments' in teacherAssistant.comments[0]
                                   ) && (
                                     <>
-                                      <Text>میانگین امتیاز </Text>
+                                      <Text
+                                        size={{
+                                          initial: '2',
+                                          sm: '3',
+                                        }}
+                                      >
+                                        میانگین امتیاز
+                                      </Text>
                                       <Progress
                                         className="w-1/3"
                                         value={
@@ -317,7 +355,14 @@ export default function Rate() {
 
                               <Dialog.Root>
                                 <Dialog.Trigger>
-                                  <Button color="blue" variant="ghost">
+                                  <Button
+                                    size={{
+                                      initial: '1',
+                                      sm: '2',
+                                    }}
+                                    color="blue"
+                                    variant="ghost"
+                                  >
                                     امتیاز دهید
                                   </Button>
                                 </Dialog.Trigger>
@@ -516,7 +561,7 @@ export default function Rate() {
                                         <Card key={index}>
                                           <Flex justify="between">
                                             <Flex
-                                              className="w-[90%]"
+                                              className="w-[70%]"
                                               direction="column"
                                               gap="2"
                                             >
@@ -672,6 +717,10 @@ export default function Rate() {
           </Flex>
           <Flex
             className="md:w-[27%] lg:w-[20%] xl:w-[12.5%] rounded-md sticky top-[60px]"
+            display={{
+              initial: 'none',
+              sm: 'flex',
+            }}
             style={{
               height: 'calc(100vh - 60px)',
             }}
