@@ -86,6 +86,11 @@ const Login: React.FC = () => {
         setCookie('access_token', data.access_token);
         setCookie('refresh_token', data.refresh_token);
 
+        if (data.admin) {
+          router.push('/admin');
+          return;
+        }
+
         router.push('/dashboard');
       })
       .catch((error: AxiosError) => {
@@ -142,24 +147,37 @@ const Login: React.FC = () => {
           </Button>
         </Flex>
         <Flex
-          className="max-w-screen-xl mx-auto"
+          className="w-full mx-auto"
           align="center"
           style={{
             height: 'calc(100vh - 60px)',
           }}
         >
-          <Container size="3">
-            <Card>
+          <Container size="3" shrink="1" className="px-10">
+            <Card className="w-full">
               <Flex direction="column" p="6" align="center">
                 <Box className="h-1/2">
                   <Image
                     src="/logo.png"
                     alt="Nooshirvani's logo"
+                    sizes="100vw"
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                    }}
                     width={163}
                     height={227}
                   />
                 </Box>
-                <Heading mt="6" size="7">
+                <Heading
+                  mt="6"
+                  size={{
+                    initial: '3',
+                    sm: '5',
+                    md: '7',
+                  }}
+                  align="center"
+                >
                   سامانه ثبت درخواست دستیار آموزشی دانشگاه صنعتی نوشیروانی
                 </Heading>
                 <Flex
@@ -170,7 +188,10 @@ const Login: React.FC = () => {
                 >
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)}>
-                      <Flex direction="column" className="w-1/2 mx-auto">
+                      <Flex
+                        direction="column"
+                        className="w-[90%] sm:w-1/2 mx-auto"
+                      >
                         <FormField
                           control={form.control}
                           name="username"
@@ -214,12 +235,12 @@ const Login: React.FC = () => {
                       <Flex gap="3" className="mt-6" justify="center">
                         <Button
                           variant="surface"
-                          className="w-1/6 py-2 px-4"
+                          className="w-1/3 sm:w-1/6 py-2 px-4"
                           type="submit"
                         >
                           ورود
                         </Button>
-                        <Link href="/register" className="w-1/6">
+                        <Link href="/register" className="w-1/3 sm:w-1/6">
                           <Button
                             className="w-full"
                             variant="soft"

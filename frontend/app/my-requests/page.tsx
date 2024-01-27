@@ -18,17 +18,9 @@ import {
   Kbd,
   Skeleton,
 } from '@radix-ui/themes';
-import Link from 'next/link';
 import { PartialTeacher } from '@/types/globalTypes';
 import { ArrowTopRightIcon } from '@radix-ui/react-icons';
 const Header = dynamic(() => import('./header'));
-
-function toArabicNumber(str: string) {
-  const id = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return str.replace(/[0-9]/g, function (w) {
-    return id[+w];
-  });
-}
 
 export async function getUser() {
   const access_token = getCookie('access_token');
@@ -128,7 +120,13 @@ export default function MyRequests() {
       <Header user={student} theme={theme} switchTheme={switchTheme} />
       <Theme accentColor="red">
         <Flex direction="row">
-          <Flex className="md:w-[27%] lg:w-[20%] xl:w-[12.5%]">
+          <Flex
+            className="md:w-[27%] lg:w-[20%] xl:w-[12.5%]"
+            display={{
+              initial: 'none',
+              sm: 'flex',
+            }}
+          >
             <Flex
               direction="column"
               className="w-full pt-4 px-5"
@@ -173,8 +171,14 @@ export default function MyRequests() {
               </Box>
             </Flex>
           </Flex>
-          <Flex className="md:w-[43%] lg:w-[60%] xl:w-[75%]" justify="center">
-            <Flex direction="column" className="w-1/2 py-4">
+          <Flex
+            className="md:w-[43%] lg:w-[60%] xl:w-[75%]"
+            justify="center"
+            mx={{
+              initial: 'auto',
+            }}
+          >
+            <Flex direction="column" className="w-[90%] sm:w-1/2 py-4">
               <Box className="w-full py-10 space-y-3">
                 <Heading as="h1" size="7">
                   درخواست های شما
@@ -253,12 +257,28 @@ export default function MyRequests() {
                             >
                               <Flex direction="column" gap="3">
                                 <Flex direction="row" gap="3">
-                                  <Heading weight="medium" as="h2" size="5">
+                                  <Heading
+                                    weight="medium"
+                                    as="h2"
+                                    size={{
+                                      initial: '3',
+                                      sm: '5',
+                                    }}
+                                  >
                                     {lesson.lessonName}
                                   </Heading>
                                 </Flex>
                                 <Flex>
-                                  <Text as="span"> وضعیت :</Text>
+                                  <Text
+                                    size={{
+                                      initial: '2',
+                                      sm: '3',
+                                    }}
+                                    as="span"
+                                  >
+                                    {' '}
+                                    وضعیت :
+                                  </Text>
                                   <Flex
                                     className="pr-2"
                                     gap="2"
@@ -284,8 +304,12 @@ export default function MyRequests() {
                                   </Flex>
                                 </Flex>
                               </Flex>
-                              {!lesson.is_accepted && (
+                              {!lesson.is_completed && (
                                 <Button
+                                  size={{
+                                    initial: '1',
+                                    sm: '2',
+                                  }}
                                   className="hover:bg-transparent hover:cursor-pointer hover:underline hover:underline-offset-4 hover:decoration-[var(--red-5)]"
                                   variant="ghost"
                                 >
@@ -307,8 +331,22 @@ export default function MyRequests() {
                               } py-2 px-4`}
                               justify="between"
                             >
-                              <Text>{lesson.teacherName}</Text>
-                              <Text>{lesson.teacherEmail}</Text>
+                              <Text
+                                size={{
+                                  initial: '2',
+                                  sm: '3',
+                                }}
+                              >
+                                {lesson.teacherName}
+                              </Text>
+                              <Text
+                                size={{
+                                  initial: '2',
+                                  sm: '3',
+                                }}
+                              >
+                                {lesson.teacherEmail}
+                              </Text>
                             </Flex>
                           </Flex>
                         </Box>
