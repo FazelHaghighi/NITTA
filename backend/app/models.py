@@ -20,8 +20,7 @@ class TA(Base):
     student_id = Column(Integer, ForeignKey("students.id"))
     lesson_id = Column(Integer, ForeignKey("lessons.id"))
     teacher_id = Column(Integer, ForeignKey("teachers.id"))
-    num_vote = Column(Integer)
-    ratings = relationship("TARating", back_populates="ta")
+    num_vote = Column(Integer, default=0)
 
 class TAComments(Base):
     __tablename__ = "tas_comments"
@@ -99,10 +98,8 @@ class RequestPreq(Base):
     preq_id = Column(Integer, ForeignKey("lessons.id"))
     grade = Column(Integer)
 
-class TARating(Base):
-    __tablename__ = "ratings"
+class Admin(Base):
+    __tablename__ = "admins"
     id = Column(Integer, primary_key=True, index=True)
-    rate = Column(Numeric)
-    comment = Column(TEXT)
-    ta_id = Column(Integer, ForeignKey("tas.id"))
-    ta = relationship("TA", back_populates="ratings")
+    username = Column(String)
+    password = Column(String)

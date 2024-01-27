@@ -101,13 +101,13 @@ class TABase(BaseModel):
     student_id: int
     lesson_id: int
     teacher_id: int
-    rate: float
     num_vote: int
-    comments: List[str]
 
 
-class TACreate(TABase):
-    pass
+class TACreate(BaseModel):
+    student_id: int
+    lesson_id: int
+    teacher_id : int
 
 
 class TA(TABase):
@@ -208,6 +208,20 @@ class DepartmentCreate(DepartmentBase):
 
 
 class Department(DepartmentBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class AdminBase(BaseModel):
+    username: str
+    password: str
+
+class AdminCreate(AdminBase):
+    pass
+
+class Admin(AdminBase):
     id: int
 
     class Config:

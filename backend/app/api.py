@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session, aliased
 from sqlalchemy.sql import func
 from argon2 import PasswordHasher
 import argon2
-from models import (Student, Teacher, Department, Lesson, TeacherLesson,
+from models import (Student, Teacher, Department, Lesson, TeacherLesson, Admin,
     LessonPrequisite, Request, RequestPreq, TA, TAComments, TACommentsVote)
 from database import engine
 from sqlalchemy import select, exc, insert, case
@@ -48,44 +48,48 @@ def login(username: str, password: str):
     
     stm1 = select(Student).where(Student.username == username).limit(1)
     stm2 = select(Teacher).where(Teacher.username == username).limit(1)
-    
-    try:
-        student = session.scalars(stm1).one()
+    stm3 = select(Admin).where(Admin.username == username).limit(1)
 
+    try:
+        admin = session.scalars(stm3).one()
+        print(admin)
         try:
-            ph.verify(student.password, password)
+            ph.verify(admin.password, password)
             access = {
-                "username": student.username,
+                "admin": True,
+                "username": admin.password,
                 "exp": calendar.timegm(datetime.now().utcnow().timetuple()) + 7200
             }
             access_token = jwt.encode(access, secret, algorithm="HS256")
 
             refresh = {
-                "username": student.username,
+                "admin": True,
+                "username":  admin.password,
                 "exp": calendar.timegm(datetime.now().timetuple()) + 7200 * 12 * 30 * 6
             }
             refresh_token = jwt.encode(refresh, secret, algorithm="HS256")
 
-            return { 
+            return {
+                "admin": True,
                 "access_token": access_token,
                 "refresh_token": refresh_token
             }
         except argon2.exceptions.VerificationError:
             return {"code": "0"}
-    except exc.NoResultFound:
+    except:
         try:
-            teacher = session.scalars(stm2).one()
+            student = session.scalars(stm1).one()
 
             try:
-                ph.verify(teacher.password, password)
+                ph.verify(student.password, password)
                 access = {
-                    "username": teacher.username,
-                    "exp": calendar.timegm(datetime.now().timetuple()) + 7200
+                    "username": student.username,
+                    "exp": calendar.timegm(datetime.now().utcnow().timetuple()) + 7200
                 }
                 access_token = jwt.encode(access, secret, algorithm="HS256")
 
                 refresh = {
-                    "username": teacher.username,
+                    "username": student.username,
                     "exp": calendar.timegm(datetime.now().timetuple()) + 7200 * 12 * 30 * 6
                 }
                 refresh_token = jwt.encode(refresh, secret, algorithm="HS256")
@@ -97,9 +101,33 @@ def login(username: str, password: str):
             except argon2.exceptions.VerificationError:
                 return {"code": "0"}
         except exc.NoResultFound:
-            return {"code": "-1"}
-    except exc.SQLAlchemyError:
-        return {"code": "-3"}
+            try:
+                teacher = session.scalars(stm2).one()
+
+                try:
+                    ph.verify(teacher.password, password)
+                    access = {
+                        "username": teacher.username,
+                        "exp": calendar.timegm(datetime.now().timetuple()) + 7200
+                    }
+                    access_token = jwt.encode(access, secret, algorithm="HS256")
+
+                    refresh = {
+                        "username": teacher.username,
+                        "exp": calendar.timegm(datetime.now().timetuple()) + 7200 * 12 * 30 * 6
+                    }
+                    refresh_token = jwt.encode(refresh, secret, algorithm="HS256")
+
+                    return { 
+                        "access_token": access_token,
+                        "refresh_token": refresh_token
+                    }
+                except argon2.exceptions.VerificationError:
+                    return {"code": "0"}
+            except exc.NoResultFound:
+                return {"code": "-1"}
+        except exc.SQLAlchemyError:
+            return {"code": "-3"}
 
 def register(student: StudentBase):
     ph = PasswordHasher()
@@ -134,7 +162,14 @@ def authorize(tokens):
         refresh = jwt.decode(tokens.refresh_token, secret, algorithms=["HS256"])
         refresh_expired = False
         access = jwt.decode(tokens.access_token, secret, algorithms=["HS256"])
-        
+
+        if 'admin' in access:
+            return {
+                "admin": "true",
+                "username": access['username'],
+                "isOk": "ok"
+            }
+
         return {
             "username": access['username'],
             "isOk": "ok"
@@ -143,11 +178,20 @@ def authorize(tokens):
     except jwt.exceptions.ExpiredSignatureError:
         if refresh_expired:
             return False
+
         access = {
                 "username": refresh['username'],
                 "exp": calendar.timegm(datetime.now().timetuple()) + 7200
             }
         new_access_token = jwt.encode(access, secret, algorithm="HS256")
+
+        if 'admin' in access:
+                return {
+                "admin": True,
+                "username": access['username'],
+                "new_access_token": new_access_token
+            }
+        
         return {
                 "username": access['username'],
                 "new_access_token": new_access_token
@@ -160,6 +204,43 @@ def authorize(tokens):
 
 
 def isStudent(tokens):
+    auth = authorize(tokens)
+
+    if auth == False:
+        return {"code": "-1"}
+    
+    elif 'isOk' in auth:
+        stm = select(Student).where(Student.username == auth['username']).limit(1)
+        stm1 = select(Teacher).where(Teacher.username == auth['username']).limit(1)
+
+        try: 
+            session.scalars(stm).one()
+            return {"code": "0"}
+        except exc.NoResultFound:
+            try:
+                session.scalars(stm1).one()
+                return {"code": "1"}
+            except exc.NoResultFound:
+                return {"code": "-3"}
+        except:
+            return { "code": "-2" }
+    else:
+        stm = select(Student).where(Student.username == auth['username']).limit(1)
+        stm1 = select(Teacher).where(Teacher.username == auth['username']).limit(1)
+
+        try: 
+            session.scalars(stm).one()
+            return {"code": "00", "new_access_token": auth['new_access_token']}
+        except exc.NoResultFound:
+            try:
+                session.scalars(stm1).one()
+                return {"code": "11", "new_access_token": auth['new_access_token']}
+            except exc.NoResultFound:
+                return {"code": "-33"}
+        except:
+            return { "code": "-2" }
+        
+def isAdmin(tokens):
     auth = authorize(tokens)
 
     if auth == False:

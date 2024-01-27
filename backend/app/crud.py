@@ -1,24 +1,9 @@
 from decimal import Decimal, ROUND_HALF_UP
 from sqlalchemy.orm import Session
-from models import TARating, TA, Request, Teacher, Student, Lesson, Department
-from schemas import TARatingCreate, RequestCreate, TeacherCreate, StudentCreate, LessonCreate, DepartmentCreate, TACreate
+from models import TA, Request, Teacher, Student, Lesson, Department
+from schemas import RequestCreate, TeacherCreate, StudentCreate, LessonCreate, DepartmentCreate, TACreate
 from typing import List
-
-def create_ta_rating(db: Session, ta_id: int, rating: TARatingCreate):
-    ta_rating = TARating(**rating.dict(), ta_id=ta_id)
-    db.add(ta_rating)
-    db.commit()
-    db.refresh(ta_rating)
-
-    # Update TA's num_vote and rate
-    ta = db.query(TA).get(ta_id)
-    ta.num_vote += 1
-    ta.rate = round(((ta.rate * (ta.num_vote - 1)) + Decimal(str(rating.rate))) / ta.num_vote, 2)
-
-    db.commit()
-    db.refresh(ta)
-
-    return ta_rating
+from argon2 import PasswordHasher
 
 
 def create_request(db: Session, request: RequestCreate):
@@ -30,6 +15,9 @@ def create_request(db: Session, request: RequestCreate):
 
 
 def create_teacher(db: Session, teacher: TeacherCreate):
+    ph = PasswordHasher()
+    password = ph.hash(teacher.password)
+    teacher.password = password
     db_teacher = Teacher(**teacher.dict())
     db.add(db_teacher)
     db.commit()
@@ -38,6 +26,9 @@ def create_teacher(db: Session, teacher: TeacherCreate):
 
 
 def create_student(db: Session, student: StudentCreate):
+    ph = PasswordHasher()
+    password = ph.hash(student.password)
+    student.password = password
     db_student = Student(**student.dict())
     db.add(db_student)
     db.commit()
@@ -86,9 +77,6 @@ def get_teachers(db: Session, skip: int = 0, limit: int = 10):
 def get_requests(db: Session, skip: int = 0, limit: int = 10):
     return db.query(Request).offset(skip).limit(limit).all()
 
-def get_ta_ratings(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(TARating).offset(skip).limit(limit).all()
-
 def get_students(db: Session, skip: int = 0, limit: int = 10) -> List[Student]:
     return db.query(Student).offset(skip).limit(limit).all()
 
@@ -120,14 +108,6 @@ def delete_department(db: Session, department_id: int):
     db_department = db.query(Department).filter(Department.id == department_id).first()
     if db_department:
         db.delete(db_department)
-        db.commit()
-        return True
-    return False
-
-def delete_rating(db: Session, rating_id: int):
-    db_rating = db.query(TARating).filter(TARating.id == rating_id).first()
-    if db_rating:
-        db.delete(db_rating)
         db.commit()
         return True
     return False
@@ -186,16 +166,6 @@ def update_department(db: Session, department_id: int, department: DepartmentCre
         db.commit()
         db.refresh(db_department)
         return db_department
-    return None
-
-def update_rating(db: Session, rating_id: int, rating: TARatingCreate):
-    db_rating = db.query(TARating).filter(TARating.id == rating_id).first()
-    if db_rating:
-        for key, value in rating.dict().items():
-            setattr(db_rating, key, value)
-        db.commit()
-        db.refresh(db_rating)
-        return db_rating
     return None
 
 def update_request(db: Session, request_id: int, request: RequestCreate):

@@ -3,14 +3,14 @@ from typing_extensions import TypedDict
 from fastapi import FastAPI, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from crud import (
-    create_ta_rating, create_request, create_teacher, create_student,
+    create_request, create_teacher, create_student,
     create_ta, create_lesson, create_department,
     get_students, get_tas, get_lessons, get_departments,
-    get_teachers, get_requests, get_ta_ratings,
+    get_teachers, get_requests,
     delete_student, delete_ta, delete_lesson, delete_department,
-    delete_rating, delete_request, delete_teacher,
+    delete_request, delete_teacher,
     update_student, update_ta, update_lesson, update_department,
-    update_rating, update_request, update_teacher
+    update_request, update_teacher
 )
 from schemas import (
     Student, TARatingCreate, TARating, Request, RequestCreate,
@@ -22,7 +22,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api import (login, authorize, getUserById, register, getDepartmentsByName,
     getTeachersByDepartment,getAllLessonsByTeacher, createRequest,
     isStudent, getTeachersStudentRequested, 
-    getLessonsStudentRequested, getLessonsByTeacher, 
+    getLessonsStudentRequested, getLessonsByTeacher, isAdmin,
     getStudentsRequestingFor, updateRequest, getAllTas, increaseVote, submitComment
 )
 from pydantic import BaseModel
@@ -143,6 +143,10 @@ async def authorization(tokens: Tokens):
 async def authorization(tokens: Tokens):
     return isStudent(tokens)
 
+@app.post("/isAdmin")
+async def is_admin(tokens: Tokens):
+    return isAdmin(tokens)
+
 @app.post("/register")
 async def registeration(student: StudentBase):
     return register(student)
@@ -199,10 +203,6 @@ async def update_request(request: RequestUpdate):
 async def create_request(req: StudentCreateRequest):
     return createRequest(req)
 
-@app.post("/tas/{ta_id}/ratings/", response_model=TARating)
-async def submit_ta_rating(ta_id: int, rating: TARatingCreate, db: Session = Depends(get_db)):
-    return create_ta_rating(db, ta_id, rating)
-
 @app.post("/requests/", response_model=Request)
 async def submit_request(request: RequestCreate, db: Session = Depends(get_db)):
     return create_request(db, request)
@@ -252,11 +252,6 @@ async def get_requests_list(skip: int = 0, limit: int = 10, db: Session = Depend
     requests = get_requests(db, skip=skip, limit=limit)
     return requests
 
-@app.get("/taratings/", response_model=List[TARating])
-async def get_ta_ratings_list(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    ta_ratings = get_ta_ratings(db, skip=skip, limit=limit)
-    return ta_ratings
-
 @app.get("/students/", response_model=List[Student])
 async def get_students_list(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     students = get_students(db, skip=skip, limit=limit)
@@ -290,13 +285,6 @@ async def delete_department_endpoint(department_id: int, db: Session = Depends(g
         raise HTTPException(status_code=404, detail="Department not found")
     return result
 
-@app.delete("/ratings/{rating_id}/", response_model=bool)
-async def delete_rating_endpoint(rating_id: int, db: Session = Depends(get_db)):
-    result = delete_rating(db, rating_id)
-    if not result:
-        raise HTTPException(status_code=404, detail="Rating not found")
-    return result
-
 @app.delete("/requests/{request_id}/", response_model=bool)
 async def delete_request_endpoint(request_id: int, db: Session = Depends(get_db)):
     result = delete_request(db, request_id)
@@ -326,10 +314,6 @@ async def update_lesson_endpoint(lesson_id: int, lesson: LessonCreate, db: Sessi
 @app.put("/departments/{department_id}/", response_model=Department)
 async def update_department_endpoint(department_id: int, department: DepartmentCreate, db: Session = Depends(get_db)):
     return update_department(db, department_id, department)
-
-@app.put("/ratings/{rating_id}/", response_model=TARating)
-async def update_rating_endpoint(rating_id: int, rating: TARatingCreate, db: Session = Depends(get_db)):
-    return update_rating(db, rating_id, rating)
 
 @app.put("/requests/{request_id}/", response_model=Request)
 async def update_request_endpoint(request_id: int, request: RequestCreate, db: Session = Depends(get_db)):
