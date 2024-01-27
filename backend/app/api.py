@@ -56,11 +56,12 @@ def login(username: str, password: str):
             ph.verify(student.password, password)
             access = {
                 "username": student.username,
-                "exp": calendar.timegm(datetime.now().timetuple()) + 7200
+                "exp": calendar.timegm(datetime.now().utcnow().timetuple()) + 7200
             }
             access_token = jwt.encode(access, secret, algorithm="HS256")
 
             refresh = {
+                "username": student.username,
                 "exp": calendar.timegm(datetime.now().timetuple()) + 7200 * 12 * 30 * 6
             }
             refresh_token = jwt.encode(refresh, secret, algorithm="HS256")
@@ -84,6 +85,7 @@ def login(username: str, password: str):
                 access_token = jwt.encode(access, secret, algorithm="HS256")
 
                 refresh = {
+                    "username": teacher.username,
                     "exp": calendar.timegm(datetime.now().timetuple()) + 7200 * 12 * 30 * 6
                 }
                 refresh_token = jwt.encode(refresh, secret, algorithm="HS256")
@@ -115,6 +117,7 @@ def register(student: StudentBase):
     access_token = jwt.encode(access, secret, algorithm="HS256")
 
     refresh = {
+        "username": created_student.username,
         "exp": calendar.timegm(datetime.now().timetuple()) + 7200 * 12 * 30 * 6
     }
     refresh_token = jwt.encode(refresh, secret, algorithm="HS256")
@@ -127,31 +130,34 @@ def register(student: StudentBase):
 
 def authorize(tokens): 
     try:
-        access = jwt.decode(tokens.access_token, secret, algorithms=["HS256"])
+        refresh_expired = True
         refresh = jwt.decode(tokens.refresh_token, secret, algorithms=["HS256"])
-        now = calendar.timegm(datetime.now().timetuple())
-        
-        if access['exp'] < now:
-            if refresh['exp'] > now:
-                access = {
-                "username": access['username'],
-                "exp": calendar.timegm(datetime.now().timetuple()) + 7200
-                }
-                new_access_token = jwt.encode(access, secret, algorithm="HS256")
-            else:
-                raise Exception
-            return {
-                "username": access['username'],
-                "new_access_token": new_access_token
-            }
+        refresh_expired = False
+        access = jwt.decode(tokens.access_token, secret, algorithms=["HS256"])
         
         return {
             "username": access['username'],
             "isOk": "ok"
         }
         
-    except:
+    except jwt.exceptions.ExpiredSignatureError:
+        if refresh_expired:
+            return False
+        access = {
+                "username": refresh['username'],
+                "exp": calendar.timegm(datetime.now().timetuple()) + 7200
+            }
+        new_access_token = jwt.encode(access, secret, algorithm="HS256")
+        return {
+                "username": access['username'],
+                "new_access_token": new_access_token
+            }
+    except jwt.exceptions.InvalidTokenError:
         return False
+    except jwt.exceptions.PyJWTError as e:
+        print(e)
+        return False
+
 
 def isStudent(tokens):
     auth = authorize(tokens)
