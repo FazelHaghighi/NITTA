@@ -635,8 +635,6 @@ def updateRequest(request: RequestUpdate):
                         student_id=res.student_id,
                         teacher_id=res.teacher_id,
                         lesson_id=res.lesson_id,
-                        rate=None,
-                        comment=None,
                         num_vote=None
                         )
             )
