@@ -8,6 +8,7 @@ class StudentBase(BaseModel):
     email: EmailStr
     password: str
     student_number: str
+    phone_number: str
 
 class StudentCreate(StudentBase):
     pass

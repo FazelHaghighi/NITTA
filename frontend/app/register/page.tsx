@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Form,
   FormControl,
@@ -28,11 +28,27 @@ import {
   Flex,
   Heading,
   TextField,
+  Dialog,
   Button,
+  Text,
 } from '@radix-ui/themes';
 import { useBoundStore } from '@/hooks/useBoundStore';
 import { MoonIcon, SunIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
+
+const dialogSchema = z.object({
+  code: z.string({ required_error: 'لطفا کد را وارد کنید' }),
+});
+
+function isEmpty(obj: any) {
+  for (const prop in obj) {
+    if (Object.hasOwn(obj, prop)) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 const formSchema = z.object({
   username: z
@@ -49,6 +65,16 @@ const formSchema = z.object({
   email: z.string().email({ message: 'لطفا یک ایمیل معتبر وارد کنید' }).min(1, {
     message: 'وارد کردن ایمیل الزامی است',
   }),
+  phone_number: z
+    .string({
+      required_error: 'وارد کردن شماره تلفن الزامی است',
+    })
+    .min(11, {
+      message: 'شماره تلفن باید ۱۱ رقمی باشد',
+    })
+    .max(11, {
+      message: 'شماره تلفن باید ۱۱ رقمی باشد',
+    }),
   name: z.string().min(1, {
     message: 'وارد کردن نام و نام خانوادگی الزامی است',
   }),
@@ -65,6 +91,7 @@ const formSchema = z.object({
 });
 
 export default function Register() {
+  const [trigger, setTrigger] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const form = useForm<z.infer<typeof formSchema>>({
@@ -77,64 +104,85 @@ export default function Register() {
       studentId: '',
     },
   });
+  const dialogForm = useForm<z.infer<typeof dialogSchema>>({
+    resolver: zodResolver(dialogSchema),
+    defaultValues: {
+      code: '',
+    },
+  });
   const theme = useBoundStore((state) => state.theme);
   const switchTheme = useBoundStore((state) => state.switchTheme);
 
   const handleSignup = async (values: z.infer<typeof formSchema>) => {
-    axios
-      .post<TokensType>(
-        'http://127.0.0.1:8000/register',
-        {
-          username: values.username,
-          email: values.email,
-          name: values.name,
-          student_number: values.studentId,
-          password: values.password,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      )
-      .then(({ data }: { data: TokensType | RegisterErrorCode }) => {
-        if ('code' in data) {
-          toast({
-            title: 'خطا!',
-            description: 'نام کاربری از قبل وجود دارد',
-            variant: 'destructive',
-          });
-          return;
-        }
-        setCookie('access_token', data.access_token);
-        setCookie('refresh_token', data.refresh_token);
+    // axios
+    //   .post<TokensType>(
+    //     'http://127.0.0.1:8000/register',
+    //     {
+    //       username: values.username,
+    //       email: values.email,
+    //       name: values.name,
+    //       student_number: values.studentId,
+    //       phone_number: values.phone_number,
+    //       password: values.password,
+    //     },
+    //     {
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //     }
+    //   )
+    //   .then(({ data }: { data: TokensType | RegisterErrorCode }) => {
+    //     if ('code' in data) {
+    //       toast({
+    //         title: 'خطا!',
+    //         description: 'نام کاربری از قبل وجود دارد',
+    //         variant: 'destructive',
+    //       });
+    //       return;
+    //     }
+    //     setCookie('access_token', data.access_token);
+    //     setCookie('refresh_token', data.refresh_token);
+    //     router.push('/dashboard');
+    //   })
+    //   .catch((error: AxiosError) => {
+    //     if (error.response) {
+    //       toast({
+    //         title: 'خطا!',
+    //         description: 'مشکلی از سمت سرور پیش آمده است مجددا تلاش کنید.',
+    //         variant: 'destructive',
+    //       });
+    //       console.log(error.response.data);
+    //     } else if (error.request) {
+    //       toast({
+    //         title: 'خطا!',
+    //         description: 'پاسخی از سمت سرور دریافت نشد.',
+    //         variant: 'destructive',
+    //       });
+    //       console.log(error);
+    //     } else {
+    //       toast({
+    //         title: 'خطا!',
+    //         description: 'خطای ناشناخته ای پیش آمده.',
+    //         variant: 'destructive',
+    //       });
+    //       console.log('Error', error.message);
+    //     }
+    //   });
+  };
 
-        router.push('/dashboard');
-      })
-      .catch((error: AxiosError) => {
-        if (error.response) {
-          toast({
-            title: 'خطا!',
-            description: 'مشکلی از سمت سرور پیش آمده است مجددا تلاش کنید.',
-            variant: 'destructive',
-          });
-          console.log(error.response.data);
-        } else if (error.request) {
-          toast({
-            title: 'خطا!',
-            description: 'پاسخی از سمت سرور دریافت نشد.',
-            variant: 'destructive',
-          });
-          console.log(error);
-        } else {
-          toast({
-            title: 'خطا!',
-            description: 'خطای ناشناخته ای پیش آمده.',
-            variant: 'destructive',
-          });
-          console.log('Error', error.message);
-        }
-      });
+  const isTouched = () => {
+    const fields: [
+      'email',
+      'password',
+      'phone_number',
+      'name',
+      'username',
+      'studentId'
+    ] = ['email', 'password', 'phone_number', 'name', 'username', 'studentId'];
+    for (const field of fields) {
+      if (form.getFieldState(field).isTouched) return true;
+    }
+    return false;
   };
 
   return (
@@ -164,6 +212,7 @@ export default function Register() {
             )}
           </Button>
         </Flex>
+
         <Flex
           className="w-full mx-auto"
           align="center"
@@ -257,6 +306,25 @@ export default function Register() {
                         />
                         <FormField
                           control={form.control}
+                          name="phone_number"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="text-xs md:text-base font-bold mb-2">
+                                شماره تلفن
+                              </FormLabel>
+                              <FormControl>
+                                <TextField.Input
+                                  size="2"
+                                  {...field}
+                                  placeholder="شماره تلفن خود را وارد کنید"
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
                           name="studentId"
                           render={({ field }) => (
                             <FormItem>
@@ -305,13 +373,92 @@ export default function Register() {
                             ورود
                           </Button>
                         </Link>
-                        <Button
-                          variant="soft"
-                          className="w-1/3 sm:w-1/6 py-2 px-4"
-                          type="submit"
-                        >
-                          ثبت نام
-                        </Button>
+                        <Dialog.Root open={trigger}>
+                          <Button
+                            variant="soft"
+                            className="w-1/3 sm:w-1/6 py-2 px-4"
+                            type="submit"
+                            onClick={() => {
+                              console.log(
+                                isTouched(),
+                                form.getFieldState('email'),
+                                isEmpty(form.control._formState.errors)
+                              );
+                              if (
+                                isTouched() &&
+                                isEmpty(form.control._formState.errors)
+                              ) {
+                                setTrigger(true);
+                              } else {
+                                setTrigger(false);
+                              }
+                            }}
+                          >
+                            ثبت نام
+                          </Button>
+                          <Dialog.Content>
+                            <Dialog.Title>احراز هویت</Dialog.Title>
+                            <Dialog.Description>
+                              <Form {...dialogForm}>
+                                <form
+                                  onSubmit={dialogForm.handleSubmit(
+                                    async (
+                                      values: z.infer<typeof dialogSchema>
+                                    ) => {}
+                                  )}
+                                >
+                                  <Flex direction="column" gap="3">
+                                    <FormField
+                                      control={dialogForm.control}
+                                      name="code"
+                                      render={({ field }) => (
+                                        <FormItem>
+                                          <FormLabel>
+                                            <Text
+                                              as="div"
+                                              size="2"
+                                              mb="1"
+                                              weight="bold"
+                                            >
+                                              کد پیامک شده را وارد نمایید:
+                                            </Text>
+                                          </FormLabel>
+                                          <FormControl>
+                                            <TextField.Input
+                                              color="blue"
+                                              {...field}
+                                              placeholder="کد ۶ رقمی"
+                                            />
+                                          </FormControl>
+                                          <FormMessage />
+                                        </FormItem>
+                                      )}
+                                    />
+                                  </Flex>
+
+                                  <Flex gap="3" mt="4" justify="end">
+                                    <Button
+                                      variant="surface"
+                                      color="red"
+                                      onClick={() => {
+                                        setTrigger(false);
+                                      }}
+                                    >
+                                      لغو
+                                    </Button>
+                                    <Button
+                                      type="submit"
+                                      variant="soft"
+                                      color="blue"
+                                    >
+                                      ثبت
+                                    </Button>
+                                  </Flex>
+                                </form>
+                              </Form>
+                            </Dialog.Description>
+                          </Dialog.Content>
+                        </Dialog.Root>
                       </Flex>
                     </form>
                   </Form>

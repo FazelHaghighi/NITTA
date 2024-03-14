@@ -126,7 +126,8 @@ def login(username: str, password: str):
                     return {"code": "0"}
             except exc.NoResultFound:
                 return {"code": "-1"}
-        except exc.SQLAlchemyError:
+        except exc.SQLAlchemyError as e:
+            print(e)
             return {"code": "-3"}
 
 def register(student: StudentBase):

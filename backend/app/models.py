@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Numeric, TEXT, ForeignKey, Boolean, TIMESTAMP, ARRAY
+from sqlalchemy import Column, Integer, String, Numeric, TEXT, ForeignKey, Boolean, TIMESTAMP
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from database import Base
@@ -12,6 +12,7 @@ class Student(Base):
     email = Column(String, unique=True, index=True)
     password = Column(String)
     student_number = Column(String)
+    phone_number = Column(String, unique=True, index=True)
 
 
 class TA(Base):
