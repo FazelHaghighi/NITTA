@@ -1,6 +1,6 @@
 import jwt
 from datetime import datetime, timedelta
-from ..application.common.jwt_token_generator_interface import IJwtTokenGenerator
+from application.common.jwt_token_generator_interface import IJwtTokenGenerator
 from domain.user import User
 
 class JwtTokenGenerator(IJwtTokenGenerator):
