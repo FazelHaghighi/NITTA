@@ -1,22 +1,17 @@
-from abc import ABC, abstractmethod
 from domain.user import User
 from .authentication_result import AuthenticationResult
-
-
-class IRegisterService(ABC):
-    @abstractmethod
-    def handle(self, first_name: str, last_name: str, enail: str) -> AuthenticationResult: pass
+from .register_service_interface import IRegisterService
 
 
 class RegisterService(IRegisterService):
-    def handle(self, first_name: str, last_name: str, enail: str):
+    def handle(self, first_name: str, last_name: str, email: str):
         #check if user exists
 
         #create user
         user = User(
             first_name=first_name, 
             last_name=last_name, 
-            enail=enail
+            email=email
         )
 
         #save user
@@ -26,4 +21,3 @@ class RegisterService(IRegisterService):
 
         #return newlly created user
         return AuthenticationResult(user=user, token=token)
-        
