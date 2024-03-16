@@ -2,8 +2,7 @@ from domain.user import User
 from .authentication_result import AuthenticationResult
 from .register_service_interface import IRegisterService
 from ..common.user_repository_interface import IUserRepository
-from ..common.jwt_token_generator import IJwtTokenGenerator
-
+from ..common.jwt_token_generator_interface import IJwtTokenGenerator
 class RegisterService(IRegisterService):
     def __init__(self, user_repository: IUserRepository, jwt_token_generator: IJwtTokenGenerator):
         self.__user_repository = user_repository
